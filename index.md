@@ -37,17 +37,6 @@ feature_row:
     btn_class: "btn--primary"
 ---
 
-# OpenReef Automated System
-{: .fs-9 }
-
-Open-source automated colorimetric water quality testing for phosphate and nitrate analysis.
-{: .fs-6 .fw-300 }
-
-[Get Started](docs/getting-started/quick-start.md){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[View on GitHub](https://github.com/thetemplateblog/openreef){: .btn .fs-5 .mb-4 .mb-md-0 }
-
----
-
 ## Overview
 
 **OpenReef** is a fully automated, PyBadge-controlled platform for colorimetric water quality testing. The system automates the entire assay process from sample preparation through measurement and cleanup, providing accurate phosphate and nitrate measurements for:
