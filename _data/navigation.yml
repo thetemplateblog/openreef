@@ -1,0 +1,34 @@
+# Main navigation (top menu)
+main:
+  - title: "Getting Started"
+    children:
+      - title: "System Overview"
+        url: /docs/introduction/overview/
+      - title: "Quick Start Guide"
+        url: /docs/getting-started/quick-start/
+
+  - title: "Assay Protocols"
+    children:
+      - title: "Phosphate Assay"
+        url: /docs/assays/phosphate/
+      - title: "Nitrate Assay"
+        url: /docs/assays/nitrate/
+
+  - title: "Hardware"
+    children:
+      - title: "Parts List"
+        url: /docs/hardware/parts-list/
+      - title: "Adafruit Components"
+        url: /docs/hardware/adafruit-parts-bom/
+      - title: "CAD Files"
+        url: /docs/hardware/cad-files/
+
+  - title: "Software"
+    children:
+      - title: "Automation Sequence"
+        url: /docs/firmware/automation-sequence/
+      - title: "Calibration Guide"
+        url: /docs/calibration/calibration-guide/
+
+  - title: "GitHub"
+    url: https://github.com/thetemplateblog/openreef
