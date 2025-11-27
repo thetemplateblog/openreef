@@ -39,12 +39,7 @@ feature_row:
 
 ## Overview
 
-**OpenReef** is a fully automated, PyBadge-controlled platform for colorimetric water quality testing. The system automates the entire assay process from sample preparation through measurement and cleanup, providing accurate phosphate and nitrate measurements for:
-
-- 🐠 Reef aquarium monitoring
-- 🌱 Hydroponic nutrient management
-- 🌊 Environmental water testing
-- 🎓 Educational demonstrations
+**OpenReef** is a fully automated, PyBadge-controlled platform for colorimetric water quality testing. The system automates the entire assay process from sample preparation through measurement and cleanup, providing accurate phosphate and nitrate measurements for 🐠 Reef aquarium monitoring
 
 ### Key Features
 
@@ -68,12 +63,15 @@ feature_row:
 
 - [Phosphate Assay](docs/assays/phosphate.md) - 625nm colorimetric method (0-30 ppm)
 - [Nitrate Assay](docs/assays/nitrate.md) - 528nm colorimetric method (0-90 ppm)
+- [All Tests](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
 
 ### 🔧 Hardware
 
 - [Parts List & BOM](docs/hardware/parts-list.md) - Complete bill of materials
 - [Adafruit Components](docs/hardware/adafruit-parts-bom.md) - Specific Adafruit parts
 - [CAD Files (Coming Soon)](docs/hardware/cad-files.md) - 3D printable designs
+- [Control Led](https://github.com/iorodeo/i_control_led/tree/main)
+- [Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
 
 ### 💻 Software
 
