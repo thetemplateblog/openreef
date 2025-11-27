@@ -1,0 +1,43 @@
+{
+  "Phosphate API": {
+    "units": "ppm",
+    "led": "625",
+    "fit_type": "polynomial",
+    "fit_coef": [
+      3.500142,
+      -1.194604
+    ],
+    "range": {
+      "min": 0.0,
+      "max": 2.79
+    }
+  },
+  "Nitrate API": {
+    "units": "ppm",
+    "led": "520",
+    "fit_type": "polynomial",
+    "fit_coef": [
+      0.32039213453320625,
+      34.032597696304,
+      0.0
+    ],
+    "range": {
+      "min": 0.0,
+      "max": 10
+    }
+  },
+  "Nitrite API": {
+    "units": "ppm",
+    "led": "520",
+    "fit_type": "polynomial",
+    "fit_coef": [
+      0.13111937060865314,
+      1.2591439203550079,
+      0.0
+    ],
+    "range": {
+      "min": 0.0,
+      "max": 1.4
+    }
+  }
+}

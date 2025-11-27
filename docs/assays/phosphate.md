@@ -31,15 +31,22 @@ PO₄³⁻ + Mo⁶⁺ + Sb³⁺ → [PMo₁₂O₄₀]³⁻ (phosphomolybdate co
 
 ## Specifications
 
-| Parameter | Value |
-|-----------|-------|
-| **Detection Method** | Colorimetric (ascorbic acid reduction) |
-| **Wavelength** | 625 nm (red LED) |
-| **Measurement Range** | 0-30 ppm PO₄ (API kit) |
-| **Alternative Ranges** | 0-5 ppm or 0-90 ppm with different kits |
-| **Reaction Time** | 5-10 minutes |
-| **Color** | Blue (intensity ∝ concentration) |
-| **pH Range** | Acidic (reagents adjust pH) |
+### Comparison of Test Kits
+
+| Parameter | API Phosphate Kit | Red Sea Phosphate Pro |
+|-----------|-------------------|----------------------|
+| **Detection Method** | Colorimetric (ascorbic acid) | Colorimetric (ascorbic acid) |
+| **Optimal Wavelength** | 880 nm (measured at 625 nm) | 880 nm (IR LED) |
+| **Measurement Range** | 0-30 ppm PO₄ | 0-5 ppm PO₄ |
+| **Optimal Range** | 0.5-25 ppm | 0-1 ppm |
+| **Accuracy** | ±1 ppm | ±0.02 ppm |
+| **Precision** | ~0.5 ppm | 0.01 ppm |
+| **LOD** | ~0.05 ppm | ~0.02 ppm |
+| **LOQ** | ~0.10 ppm | ~0.05 ppm |
+| **Reaction Time** | 5-10 minutes | Per kit instructions |
+| **Color** | Blue (molybdenum blue) | Light blue (molybdenum blue) |
+| **Tests per Kit** | ~150 | 100 |
+| **Best Use** | General aquarium (0-10 ppm) | Ultra-low reef (0-1 ppm) |
 
 ## Reagents
 
@@ -86,7 +93,172 @@ From 37.5 ppm working stock, prepare:
 
 **Note**: Standards should be prepared fresh for calibration. Can be stored for up to 1 week in dark bottles at 4°C.
 
-## Manual Protocol
+---
+
+## Red Sea Phosphate Pro Protocol
+
+### Overview
+
+The **Red Sea Phosphate Pro** test kit is designed for ultra-low phosphate measurements in reef aquariums, providing exceptional accuracy (±0.02 ppm) in the 0-1 ppm range where reef systems typically operate.
+
+### Hardware Requirements
+
+#### LED Configuration
+- **Optimal**: **880 nm infrared LED** (maximum sensitivity)
+- Alternative: 710-720 nm (95% sensitivity)
+- Not recommended: 625 nm red LED (only 30-40% sensitivity)
+
+#### Sensor Setup (TSL2591)
+- Use **Channel 1** (IR photodiode) for 880 nm LED
+- IR channel has good response in 650-950 nm range
+- Peak sensitivity: 800-850 nm
+
+### Preparing Reference Standards (0-1 ppm range)
+
+#### Stock Solution (100 ppm PO₄)
+
+**Materials**:
+- Potassium phosphate monobasic (KH₂PO₄, anhydrous, ACS grade)
+- Distilled or RO/DI water
+- 1000 mL volumetric flask
+- Analytical balance (0.0001 g precision)
+
+**Preparation**:
+1. Weigh **0.1433 g** KH₂PO₄ (anhydrous)
+   - MW KH₂PO₄ = 136.09 g/mol
+   - MW PO₄³⁻ = 94.97 g/mol
+   - Conversion: 136.09 / 94.97 = 1.433
+2. Dissolve in ~500 mL distilled water
+3. Dilute to 1000 mL mark
+4. Mix thoroughly (invert 20 times)
+5. Store refrigerated at 4°C (stable 6 months)
+
+#### Intermediate Solution (10 ppm PO₄) - Recommended
+
+1. Pipette 10.00 mL of 100 ppm stock
+2. Transfer to 100 mL volumetric flask
+3. Fill to mark with distilled water
+4. Mix thoroughly
+5. Store refrigerated (stable 1 month)
+
+#### Working Standards (0-1 ppm)
+
+From 10 ppm intermediate solution:
+
+| Concentration | 10 ppm Stock | Distilled Water | Total Volume |
+|---------------|--------------|-----------------|--------------|
+| 0.00 ppm      | 0.0 mL       | 100 mL          | 100 mL       |
+| 0.10 ppm      | 1.0 mL       | 99.0 mL         | 100 mL       |
+| 0.25 ppm      | 2.5 mL       | 97.5 mL         | 100 mL       |
+| 0.50 ppm      | 5.0 mL       | 95.0 mL         | 100 mL       |
+| 0.75 ppm      | 7.5 mL       | 92.5 mL         | 100 mL       |
+| 1.00 ppm      | 10.0 mL      | 90.0 mL         | 100 mL       |
+
+**Storage**: Prepare fresh daily for best accuracy. If stored, refrigerate and use within 1 week.
+
+### Calibration Procedure
+
+1. **Blank the colorimeter** with distilled water
+2. **Measure each standard** (3-6 replicates per concentration)
+   - Add Red Sea Pro reagents per kit instructions
+   - Wait for color development
+   - Record absorbance value
+3. **Calculate fit coefficients** using linear regression
+   - Plot concentration (ppm) vs absorbance
+   - Should be linear with R² > 0.995
+4. **Update calibration file** with new coefficients
+
+#### Expected Performance
+
+With 880 nm LED:
+- **Linearity**: R² > 0.995
+- **Precision**: 2-5% RSD
+- **Sensitivity**: ~3x better than 625 nm LED
+- **Detection limit**: 0.02 ppm PO₄
+
+### Software Configuration
+
+#### Modify `src/light_sensor.py`
+
+Change to use IR channel for 880 nm LED:
+
+```python
+self.channel = 1  # Use IR channel (1) for 880nm LED
+```
+
+#### Update `calibrations.json`
+
+```json
+{
+  "Phosphate Red Sea Pro": {
+    "units": "ppm",
+    "led": "880",
+    "fit_type": "polynomial",
+    "fit_coef": [
+      3.521845,
+      -0.012456
+    ],
+    "range": {
+      "min": 0.00,
+      "max": 0.65
+    }
+  }
+}
+```
+
+**Note**: `fit_coef` values shown are examples. Perform calibration to determine actual coefficients for your system.
+
+### Quality Control
+
+**Method Blank**:
+- Distilled water processed with reagents
+- Should read 0.00 ± 0.01 ppm
+
+**Continuing Calibration Verification (CCV)**:
+- Run 0.50 ppm standard every 10 samples
+- Should be within ±10% of expected value
+
+**Duplicate Samples**:
+- Run 1 duplicate per 10 samples
+- RPD < 10%
+
+### Commercial Reference Standards (Alternative)
+
+If preparing standards is impractical:
+
+**Hanna Phosphate Standards**:
+- HI774-11: 0.00 ppm (blank)
+- HI774-12: 0.25 ppm
+- HI774-13: 0.50 ppm
+
+**NIST Traceable Standards**:
+- Available from scientific suppliers
+- Certified accuracy
+- Typical: 0.1, 0.5, 1.0, 5.0 ppm PO₄
+
+### Troubleshooting Red Sea Pro
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Readings negative | Calibration intercept too high | Re-calibrate with fresh standards |
+| Poor repeatability (>10% RSD) | Inconsistent mixing/timing | Control temperature, use timer |
+| Non-linear curve | Reagent issues, LED saturation | Fresh reagents, reduce integration time |
+| Drift over time | Reagent degradation | Re-calibrate monthly |
+| Doesn't match comparator | Different timing | Ensure exact same reaction time |
+
+### Best Practices
+
+- Always blank before measurements
+- Control temperature (20-25°C)
+- Follow exact reaction timing
+- Filter turbid samples
+- Store reagents cool and dark
+- Check expiration dates
+- Re-calibrate monthly
+
+---
+
+## Manual Protocol (API Kit)
 
 ### Equipment Needed
 
@@ -269,7 +441,11 @@ Where:
 ### Mitigation
 - Filter turbid samples
 - Use sample dilution if interferences suspected
-- For silicate interference: use alternative wavelength (880 nm)
+- **For silicate interference**: Use 880 nm IR LED instead of 625 nm
+  - 880 nm is optimal wavelength for molybdenum blue method
+  - Provides 3x better sensitivity than 625 nm
+  - Reduces silicate interference
+  - Required for ultra-low range (0-1 ppm) measurements
 
 ## Safety
 
@@ -292,10 +468,19 @@ Where:
 
 ## References
 
+### Standards and Methods
 1. APHA Standard Method 4500-P E: Standard Methods for the Examination of Water and Wastewater
 2. Murphy, J. and Riley, J.P. (1962) A modified single solution method for the determination of phosphate in natural waters
-3. API Phosphate Test Kit Instructions
-4. IoRodeo Phosphate Protocol: https://sites.google.com/iorodeo.com/biorodeo/phosphate
+3. EPA Method 365.3: Phosphorous, All Forms (Colorimetric, Ascorbic Acid)
+
+### Test Kit Documentation
+4. API Phosphate Test Kit Instructions
+5. Red Sea Phosphate Pro Manual: https://g1.redseafish.com/support/manuals/products/phosphate-pro/
+6. IoRodeo Phosphate Protocol: https://sites.google.com/iorodeo.com/biorodeo/phosphate
+
+### Sensor Documentation
+7. TSL2591 High Dynamic Range Digital Light Sensor Datasheet: https://cdn-shop.adafruit.com/datasheets/TSL25911_Datasheet_EN_v1.pdf
+8. AMS TSL25911 Product Page: https://ams-osram.com/products/sensor-solutions/ambient-light-color-spectral-proximity-sensors/ams-tsl25911-ambient-light-sensor
 
 ## Appendix: Conversion Factors
 

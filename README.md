@@ -6,16 +6,15 @@ Open-source automated colorimetric water quality testing for phosphate and nitra
 ![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
 ![CircuitPython](https://img.shields.io/badge/CircuitPython-8.x-blueviolet.svg)
 
+![All Tests](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
+![Control Led](https://github.com/iorodeo/i_control_led/tree/main)
+![Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
+
 ---
 
 ## Overview
 
-**OpenReef** is a fully automated, PyBadge-controlled platform for colorimetric water quality testing. The system automates the entire assay process from sample preparation through measurement and cleanup, providing accurate phosphate and nitrate measurements for:
-
-- Reef aquarium monitoring
-- Hydroponic nutrient management
-- Environmental water testing
-- Educational demonstrations
+**OpenReef** is a fully automated, PyBadge-controlled platform for colorimetric water quality testing. The system automates the entire assay process from sample preparation through measurement and cleanup, providing accurate phosphate and nitrate measurements for Reef aquarium monitoring.
 
 ### Key Features
 

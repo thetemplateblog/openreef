@@ -1,7 +1,6 @@
-# Hardware and firmware files (not ready yet)
+# Hardware files (not ready yet)
 # Exclude root-level folders but not docs subfolders
 /hardware/
-/firmware/
 
 # Jekyll
 _site/

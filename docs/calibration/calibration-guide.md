@@ -96,6 +96,8 @@ Perform linear regression to find:
 - **b** (y-intercept): blank absorbance
 - **R²**: correlation coefficient (should be > 0.99)
 
+**Automated Analysis Tool**: Use the Python script in `tools/calibration/` to automatically calculate fit coefficients from your calibration data. See [tools/calibration/README.md](../../tools/calibration/README.md) for usage instructions.
+
 #### Step 4: Save Calibration Data
 
 Save to `phosphate_cal.json`:
@@ -168,7 +170,9 @@ Run in duplicate.
 
 #### Step 3: Calculate & Save
 
-Same process as phosphate. Save to `nitrate_cal.json`:
+Same process as phosphate. Use the automated analysis tool in `tools/calibration/` to calculate fit coefficients (see [tools/calibration/README.md](../../tools/calibration/README.md)).
+
+Save to `nitrate_cal.json`:
 
 ```json
 {
