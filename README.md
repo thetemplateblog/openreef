@@ -6,10 +6,6 @@ Open-source automated colorimetric water quality testing for phosphate and nitra
 ![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
 ![CircuitPython](https://img.shields.io/badge/CircuitPython-8.x-blueviolet.svg)
 
-![All Tests](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
-![Control Led](https://github.com/iorodeo/i_control_led/tree/main)
-![Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
-
 ---
 
 ## Overview
@@ -28,6 +24,10 @@ Open-source automated colorimetric water quality testing for phosphate and nitra
 ---
 
 ## Quick Links
+
+- [All Tests](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
+- [Control Led](https://github.com/iorodeo/i_control_led/tree/main)
+- [Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
 
 ### Documentation
 
