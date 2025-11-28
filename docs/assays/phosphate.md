@@ -26,7 +26,7 @@ The phosphate assay uses the **ascorbic acid method** (APHA Standard Method 4500
 ```
 PO₄³⁻ + Mo⁶⁺ + Sb³⁺ → [PMo₁₂O₄₀]³⁻ (phosphomolybdate complex)
                          ↓ Ascorbic acid
-                    Molybdenum Blue (λmax = 880 nm, measured at 625 nm)
+                    Molybdenum Blue (λmax = 880 nm optimal, 625 nm acceptable)
 ```
 
 ## Specifications
@@ -36,7 +36,7 @@ PO₄³⁻ + Mo⁶⁺ + Sb³⁺ → [PMo₁₂O₄₀]³⁻ (phosphomolybdate co
 | Parameter | API Phosphate Kit | Red Sea Phosphate Pro |
 |-----------|-------------------|----------------------|
 | **Detection Method** | Colorimetric (ascorbic acid) | Colorimetric (ascorbic acid) |
-| **Optimal Wavelength** | 880 nm (measured at 625 nm) | 880 nm (IR LED) |
+| **Optimal Wavelength** | 880 nm (optimal), 625 nm (API kit uses red LED) | 880 nm (IR LED for maximum sensitivity) |
 | **Measurement Range** | 0-30 ppm PO₄ | 0-5 ppm PO₄ |
 | **Optimal Range** | 0.5-25 ppm | 0-1 ppm |
 | **Accuracy** | ±1 ppm | ±0.02 ppm |

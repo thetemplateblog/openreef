@@ -28,7 +28,7 @@
   },
   "Nitrate API": {
     "units": "ppm",
-    "led": "520",
+    "led": "528",
     "fit_type": "polynomial",
     "fit_coef": [
       0.32039213453320625,
@@ -42,7 +42,7 @@
   },
   "Nitrite API": {
     "units": "ppm",
-    "led": "520",
+    "led": "528",
     "fit_type": "polynomial",
     "fit_coef": [
       0.13111937060865314,

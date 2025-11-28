@@ -27,9 +27,9 @@ The Red Sea Phosphate Pro test kit is a high-precision colorimetric reagent opti
 - Industry standard for phosphate analysis
 - 3x better sensitivity than visible red LEDs
 
-**Alternative Wavelengths**:
+**Alternative Wavelengths** (if 880 nm IR LED not available):
 - 710-720 nm: Excellent (95% sensitivity)
-- 625-630 nm: Acceptable (30-40% sensitivity)
+- 625-630 nm: Acceptable (30-40% sensitivity, used by API kit)
 - 520 nm: Poor (not recommended)
 
 ### Sensor Configuration
