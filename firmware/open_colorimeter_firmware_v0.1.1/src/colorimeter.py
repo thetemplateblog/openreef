@@ -6,6 +6,7 @@ import digitalio
 import gamepadshift
 import constants
 import adafruit_itertools
+import gc
 
 from light_sensor import LightSensor
 from light_sensor import LightSensorOverflow
@@ -23,19 +24,30 @@ from menu_screen import MenuScreen
 from message_screen import MessageScreen
 from measure_screen import MeasureScreen
 
+# Motor imports - lazy load to save memory
+# from motor_screen import MotorScreen
+# from motor_controller import MotorController
+# from motor_controller import MotorControllerError
+
 class Mode:
     MEASURE = 0
     MENU    = 1
     MESSAGE = 2
     ABORT   = 3
+    MOTOR_CONTROL = 4
 
 class Colorimeter:
 
     ABOUT_STR = 'About'
-    RAW_SENSOR_STR = 'Raw Sensor' 
+    RAW_SENSOR_STR = 'Raw Sensor'
     ABSORBANCE_STR = 'Absorbance'
     TRANSMITTANCE_STR = 'Transmittance'
+    MOTOR_1_STR = 'Motor 1'
+    MOTOR_2_STR = 'Motor 2'
+    MOTOR_3_STR = 'Motor 3'
+    MOTOR_4_STR = 'Motor 4'
     DEFAULT_MEASUREMENTS = [ABSORBANCE_STR, TRANSMITTANCE_STR, RAW_SENSOR_STR]
+    MOTOR_ITEMS = [MOTOR_1_STR, MOTOR_2_STR, MOTOR_3_STR, MOTOR_4_STR]
 
     def __init__(self):
 
@@ -45,6 +57,10 @@ class Colorimeter:
         self.mode = Mode.MEASURE
         self.is_blanked = False
         self.blank_value = 1.0
+        self.current_motor_num = 1
+        self.motor_throttle = 0.0  # Current motor speed/direction
+        self.motor_enabled = True  # Set to False to disable motor features
+        self.motor_controller = None  # Lazy load when needed
 
 
         # Create screens
@@ -52,6 +68,7 @@ class Colorimeter:
         self.measure_screen = MeasureScreen()
         self.message_screen = MessageScreen()
         self.menu_screen = MenuScreen()
+        self.motor_screen = None  # Lazy load when needed
 
         # Setup gamepad inputs - change this (Keypad shift??)
         self.last_button_press = time.monotonic()
@@ -89,6 +106,8 @@ class Colorimeter:
                 self.mode = Mode.MESSAGE
 
         self.menu_items.extend([k for k in self.calibrations.data])
+        if self.motor_enabled:
+            self.menu_items.extend(self.MOTOR_ITEMS)
         self.menu_items.append(self.ABOUT_STR)
 
         # Set default/startup measurement
@@ -118,14 +137,63 @@ class Colorimeter:
             self.blank_sensor(set_blanked=False)
             self.measure_screen.set_not_blanked()
 
-        # Setup up battery monitoring settings cycles 
+        # Setup up battery monitoring settings cycles
         self.battery_monitor = BatteryMonitor()
         self.setup_gain_and_itime_cycles()
 
+        # Print memory info at startup
+        gc.collect()
+        print(f"Startup free memory: {gc.mem_free()} bytes")
+
+    def _init_motor_controller(self, motor_num):
+        """
+        Lazy load motor controller and screen only when needed
+
+        Args:
+            motor_num: Motor number (1-4) to initialize - only initializes this motor to save memory
+        """
+        if self.motor_controller is not None:
+            return  # Already initialized
+
+        try:
+            # Free up memory before loading heavy motor modules
+            gc.collect()
+            print(f"Free memory before motor init: {gc.mem_free()} bytes")
+
+            # Import motor modules only when needed
+            from motor_screen import MotorScreen
+            from motor_controller import MotorController
+
+            # Initialize motor screen
+            self.motor_screen = MotorScreen()
+
+            # Run GC again after screen initialization
+            gc.collect()
+            print(f"Free memory after screen init: {gc.mem_free()} bytes")
+
+            # Initialize motor controller - only create the one motor we need
+            self.motor_controller = MotorController(motor_num=motor_num)
+            if self.motor_controller.mock_mode:
+                print("Motor controller in mock mode - no hardware detected")
+
+            gc.collect()
+            print(f"Free memory after motor init: {gc.mem_free()} bytes")
+
+        except MemoryError as error:
+            print(f"Memory allocation failed during motor init: {error}")
+            print(f"Free memory: {gc.mem_free()} bytes")
+            self.motor_controller = None
+            self.motor_screen = None
+            raise  # Re-raise to be caught by caller
+        except Exception as error:
+            print(f"Motor init error: {error}")
+            self.motor_controller = None
+            self.motor_screen = None
+
     def setup_gain_and_itime_cycles(self):
-        self.gain_cycle = adafruit_itertools.cycle(constants.GAIN_TO_STR) 
+        self.gain_cycle = adafruit_itertools.cycle(constants.GAIN_TO_STR)
         if self.configuration.gain is not None:
-            while next(self.gain_cycle) != self.configuration.gain: 
+            while next(self.gain_cycle) != self.configuration.gain:
                 continue
 
         self.itime_cycle = adafruit_itertools.cycle(constants.INTEGRATION_TIME_TO_STR)
@@ -176,6 +244,22 @@ class Colorimeter:
     @property
     def is_raw_sensor(self):
         return self.measurement_name == self.RAW_SENSOR_STR
+
+    @property
+    def is_motor_control(self):
+        return self.measurement_name in self.MOTOR_ITEMS
+
+    def get_motor_number_from_name(self, name):
+        """Extract motor number (1-4) from motor menu item name"""
+        if name == self.MOTOR_1_STR:
+            return 1
+        elif name == self.MOTOR_2_STR:
+            return 2
+        elif name == self.MOTOR_3_STR:
+            return 3
+        elif name == self.MOTOR_4_STR:
+            return 4
+        return None
 
     @property
     def measurement_units(self):
@@ -301,17 +385,90 @@ class Colorimeter:
                 self.decr_menu_item_pos()
             elif self.down_button_pressed(buttons): 
                 self.incr_menu_item_pos()
-            elif self.right_button_pressed(buttons): 
+            elif self.right_button_pressed(buttons):
                 selected_item = self.menu_items[self.menu_item_pos]
                 if selected_item == self.ABOUT_STR:
                     about_msg = f'firmware version {constants.__version__}'
-                    self.message_screen.set_message(about_msg) 
+                    self.message_screen.set_message(about_msg)
                     self.message_screen.set_to_about()
                     self.mode = Mode.MESSAGE
+                elif selected_item in self.MOTOR_ITEMS:
+                    # Entering motor control mode - lazy load motor modules
+                    try:
+                        # Determine which motor number before initializing
+                        motor_num = self.get_motor_number_from_name(selected_item)
+
+                        # Initialize controller if first time, or add motor if switching
+                        if self.motor_controller is None:
+                            self._init_motor_controller(motor_num)
+                        else:
+                            # Controller exists, add this motor if it doesn't exist yet
+                            gc.collect()
+                            self.motor_controller.add_motor(motor_num)
+
+                        if self.motor_controller is not None:
+                            self.measurement_name = selected_item
+                            self.current_motor_num = motor_num
+                            self.motor_throttle = 0.0
+                            self.mode = Mode.MOTOR_CONTROL
+                            self.motor_controller.stop(self.current_motor_num)
+                        else:
+                            error_msg = 'Motor controller init failed'
+                            self.message_screen.set_message(error_msg)
+                            self.message_screen.set_to_error()
+                            self.mode = Mode.MESSAGE
+                    except MemoryError:
+                        error_msg = 'Not enough memory for motors. Disable motor_enabled in code or remove calibrations'
+                        self.message_screen.set_message(error_msg)
+                        self.message_screen.set_to_error()
+                        self.mode = Mode.MESSAGE
                 else:
                     self.measurement_name = self.menu_items[self.menu_item_pos]
                     self.mode = Mode.MEASURE
             self.update_menu_screen()
+
+        elif self.mode == Mode.MOTOR_CONTROL:
+            if self.menu_button_pressed(buttons):
+                # Exit motor control, stop motor
+                if self.motor_controller:
+                    self.motor_controller.stop(self.current_motor_num)
+                self.motor_throttle = 0.0
+                self.mode = Mode.MEASURE
+            elif self.up_button_pressed(buttons):
+                # Increase speed (keep same direction)
+                if abs(self.motor_throttle) < 1.0:
+                    if self.motor_throttle >= 0:
+                        self.motor_throttle = min(1.0, self.motor_throttle + 0.1)
+                    else:
+                        self.motor_throttle = max(-1.0, self.motor_throttle - 0.1)
+                if self.motor_controller:
+                    self.motor_controller.set_throttle(self.current_motor_num, self.motor_throttle)
+            elif self.down_button_pressed(buttons):
+                # Decrease speed (keep same direction)
+                if abs(self.motor_throttle) > 0:
+                    if self.motor_throttle > 0:
+                        self.motor_throttle = max(0.0, self.motor_throttle - 0.1)
+                    else:
+                        self.motor_throttle = min(0.0, self.motor_throttle + 0.1)
+                if self.motor_controller:
+                    self.motor_controller.set_throttle(self.current_motor_num, self.motor_throttle)
+            elif self.right_button_pressed(buttons):
+                # Forward direction - maintain current speed
+                speed = abs(self.motor_throttle)
+                self.motor_throttle = speed if speed > 0 else 0.5
+                if self.motor_controller:
+                    self.motor_controller.set_throttle(self.current_motor_num, self.motor_throttle)
+            elif buttons & constants.BUTTON['left']:
+                # Reverse direction - maintain current speed
+                speed = abs(self.motor_throttle)
+                self.motor_throttle = -speed if speed > 0 else -0.5
+                if self.motor_controller:
+                    self.motor_controller.set_throttle(self.current_motor_num, self.motor_throttle)
+            elif self.blank_button_pressed(buttons):
+                # Stop motor
+                self.motor_throttle = 0.0
+                if self.motor_controller:
+                    self.motor_controller.stop(self.current_motor_num)
 
         elif self.mode == Mode.MESSAGE:
             if self.calibrations.has_errors:
@@ -375,6 +532,13 @@ class Colorimeter:
 
             elif self.mode == Mode.MENU:
                 self.menu_screen.show()
+
+            elif self.mode == Mode.MOTOR_CONTROL:
+                # Update motor control screen
+                if self.motor_screen is not None:
+                    self.motor_screen.set_motor_number(self.current_motor_num)
+                    self.motor_screen.update(self.motor_throttle)
+                    self.motor_screen.show()
 
             elif self.mode in (Mode.MESSAGE, Mode.ABORT):
                 self.message_screen.show()
