@@ -9,6 +9,8 @@
 #include <Arduino.h>
 #include <vector>
 #include <map>
+#include <LittleFileSystem.h>
+#include <BlockDevice.h>
 
 #define MAX_CALIBRATIONS 10
 #define MAX_COEF 10
@@ -53,8 +55,12 @@ public:
 private:
   std::map<String, CalibrationData> _calibrations;
 
-  // Load built-in calibrations (fallback when no SD card)
+  // Load built-in calibrations
   bool loadBuiltInCalibrations();
+
+  // Persistent storage helpers (using global KVStore API)
+  bool saveCoefficient(String name, float coefficient);
+  bool loadCoefficient(String name, float& coefficient);
 
   // Parse JSON and populate calibrations
   bool parseJSON(const char* jsonString);

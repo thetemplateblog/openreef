@@ -55,6 +55,16 @@ bool LightSensor::begin() {
   write8(TSL2591_REGISTER_CONTROL, _gain | _integrationTime);
   delay(120); // Wait for integration to complete
 
+  // Verify settings were applied
+  uint8_t control = read8(TSL2591_REGISTER_CONTROL);
+  Serial.print("Control register readback: 0x");
+  Serial.print(control, HEX);
+  Serial.print(" (gain=0x");
+  Serial.print(control & 0x30, HEX);
+  Serial.print(", itime=0x");
+  Serial.print(control & 0x07, HEX);
+  Serial.println(")");
+
   Serial.println("TSL2591 initialized successfully");
   return true;
 }

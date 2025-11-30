@@ -6,31 +6,143 @@
 #include "Calibrations.h"
 #include "Config.h"
 #include <ArduinoJson.h>
-#include <SD.h>
+#include "QSPIFBlockDevice.h"
+#include "SlicingBlockDevice.h"
+#include "LittleFileSystem.h"
+
+// QSPI flash and filesystem instances
+static QSPIFBlockDevice* qspi_bd = nullptr;
+static mbed::SlicingBlockDevice* cal_data = nullptr;
+static mbed::LittleFileSystem* fs = nullptr;
+static bool fs_mounted = false;
+
+// Use last 1MB of QSPI flash for calibration data (starts at 15MB)
+#define CAL_STORAGE_OFFSET (15 * 1024 * 1024)
+#define CAL_STORAGE_SIZE   (1 * 1024 * 1024)
 
 Calibrations::Calibrations() {
-  // Constructor
+  // Constructor - keep it minimal, no QSPI initialization here
+  // QSPI will be initialized in load() after Serial is ready
 }
 
 bool Calibrations::load() {
-  // Try to load from SD card first
-  if (SD.begin()) {
-    File file = SD.open(CALIBRATIONS_FILE, FILE_READ);
-    if (file) {
-      Serial.println("Loading calibrations from SD card...");
-      // Read file into string
-      String jsonString = "";
-      while (file.available()) {
-        jsonString += (char)file.read();
+  // Load built-in calibrations
+  Serial.println("Loading built-in calibrations");
+  loadBuiltInCalibrations();
+
+  // Initialize QSPI flash filesystem on first call
+  if (!fs_mounted) {
+    Serial.println("Initializing persistent storage on QSPI flash...");
+
+    // Create QSPI block device
+    qspi_bd = new QSPIFBlockDevice(QSPI_SO0, QSPI_SO1, QSPI_SO2, QSPI_SO3,
+                                   QSPI_SCK, QSPI_CS, QSPIF_POLARITY_MODE_1, 40000000);
+
+    // Initialize the block device
+    int err = qspi_bd->init();
+    if (err) {
+      Serial.print("ERROR: QSPI init failed (error ");
+      Serial.print(err);
+      Serial.println(")");
+      delete qspi_bd;
+      qspi_bd = nullptr;
+      Serial.println("Calibrations will be RAM-only (lost on power cycle)");
+    } else {
+      Serial.print("QSPI flash size: ");
+      Serial.print(qspi_bd->size() / (1024 * 1024));
+      Serial.println(" MB");
+
+      // Create a slice of QSPI flash for calibration data (last 1MB)
+      Serial.print("Carving out ");
+      Serial.print(CAL_STORAGE_SIZE / 1024);
+      Serial.print(" KB at offset ");
+      Serial.print(CAL_STORAGE_OFFSET / (1024 * 1024));
+      Serial.println(" MB for calibrations");
+
+      cal_data = new mbed::SlicingBlockDevice(qspi_bd, CAL_STORAGE_OFFSET, CAL_STORAGE_OFFSET + CAL_STORAGE_SIZE);
+      err = cal_data->init();
+
+      if (err) {
+        Serial.print("ERROR: Storage slice init failed (error ");
+        Serial.print(err);
+        Serial.println(")");
+        delete cal_data;
+        delete qspi_bd;
+        cal_data = nullptr;
+        qspi_bd = nullptr;
+        Serial.println("Calibrations will be RAM-only (lost on power cycle)");
+      } else {
+        // Create LittleFS instance
+        fs = new mbed::LittleFileSystem("fs");
+
+        // Try to mount the filesystem
+        err = fs->mount(cal_data);
+        if (err) {
+          Serial.print("LittleFS mount failed (error ");
+          Serial.print(err);
+          Serial.println(") - formatting storage...");
+
+          // Try to format it
+          err = fs->reformat(cal_data);
+          if (err) {
+            Serial.print("ERROR: Format failed (error ");
+            Serial.print(err);
+            Serial.println(")");
+            delete fs;
+            delete cal_data;
+            delete qspi_bd;
+            fs = nullptr;
+            cal_data = nullptr;
+            qspi_bd = nullptr;
+            Serial.println("Calibrations will be RAM-only (lost on power cycle)");
+          } else {
+            Serial.println("SUCCESS: LittleFS formatted on QSPI flash");
+            Serial.println("Calibrations will persist across firmware uploads & power cycles!");
+            fs_mounted = true;
+          }
+        } else {
+          Serial.println("SUCCESS: LittleFS mounted on QSPI flash");
+          Serial.println("Calibrations will persist across firmware uploads & power cycles!");
+          fs_mounted = true;
+        }
       }
-      file.close();
-      return loadFromString(jsonString.c_str());
     }
   }
 
-  // No SD card or file not found - use built-in calibrations
-  Serial.println("SD card not available - using built-in calibrations");
-  return loadBuiltInCalibrations();
+  // Try to load saved coefficients from LittleFS
+  if (fs_mounted) {
+    Serial.println("Loading saved coefficients from LittleFS...");
+    Serial.println("Checking storage for each calibration:");
+    int loaded_count = 0;
+    for (auto& kv : _calibrations) {
+      Serial.print("  ");
+      Serial.print(kv.first);
+      Serial.print(" ... ");
+
+      float saved_coefficient;
+      if (loadCoefficient(kv.first, saved_coefficient)) {
+        if (kv.second.fitCoef.size() >= 2) {
+          kv.second.fitCoef[1] = saved_coefficient;
+          Serial.print("FOUND: ");
+          Serial.println(saved_coefficient, 4);
+          loaded_count++;
+        }
+      } else {
+        Serial.println("NOT FOUND");
+      }
+    }
+    if (loaded_count > 0) {
+      Serial.print("Successfully loaded ");
+      Serial.print(loaded_count);
+      Serial.println(" saved calibration(s) from QSPI flash");
+    } else {
+      Serial.println("No saved calibrations found in QSPI flash");
+    }
+  } else {
+    Serial.println("LittleFS not mounted - calibrations will be in RAM only");
+  }
+
+  return true;
 }
 
 bool Calibrations::loadBuiltInCalibrations() {
@@ -230,6 +342,76 @@ void Calibrations::updateCoefficient(String name, float newCoefficient) {
       Serial.print(name);
       Serial.print(" to: ");
       Serial.println(newCoefficient);
+
+      // Save to LittleFS
+      if (saveCoefficient(name, newCoefficient)) {
+        Serial.println("Calibration saved to QSPI flash - will persist across uploads");
+      } else {
+        Serial.println("WARNING: Failed to save calibration to QSPI flash");
+      }
     }
   }
+}
+
+bool Calibrations::saveCoefficient(String name, float coefficient) {
+  if (!fs_mounted) {
+    return false;
+  }
+
+  // Create filename (replace spaces with underscores)
+  String filename = "/fs/cal_" + name;
+  filename.replace(" ", "_");
+  filename += ".dat";
+
+  Serial.print("Saving to LittleFS: file='");
+  Serial.print(filename);
+  Serial.print("', value=");
+  Serial.println(coefficient, 4);
+
+  // Open file for writing
+  FILE* file = fopen(filename.c_str(), "wb");
+  if (!file) {
+    Serial.print("ERROR: Could not open file for writing: ");
+    Serial.println(filename);
+    return false;
+  }
+
+  // Write coefficient
+  size_t written = fwrite(&coefficient, sizeof(float), 1, file);
+  fclose(file);
+
+  if (written != 1) {
+    Serial.println("ERROR: Failed to write coefficient");
+    return false;
+  }
+
+  Serial.println("Successfully saved to LittleFS!");
+  return true;
+}
+
+bool Calibrations::loadCoefficient(String name, float& coefficient) {
+  if (!fs_mounted) {
+    return false;
+  }
+
+  // Create filename (replace spaces with underscores)
+  String filename = "/fs/cal_" + name;
+  filename.replace(" ", "_");
+  filename += ".dat";
+
+  // Open file for reading
+  FILE* file = fopen(filename.c_str(), "rb");
+  if (!file) {
+    return false;  // File doesn't exist
+  }
+
+  // Read coefficient
+  size_t read = fread(&coefficient, sizeof(float), 1, file);
+  fclose(file);
+
+  if (read != 1) {
+    return false;
+  }
+
+  return true;
 }

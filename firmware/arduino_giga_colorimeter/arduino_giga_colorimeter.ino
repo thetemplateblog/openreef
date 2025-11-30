@@ -76,19 +76,9 @@ void setup() {
   }
   Serial.println();
 
-  // Initialize motor controller
+  // Initialize motor controller (stub)
   Serial.println("Step 4: Initializing motor controller...");
-  if (!motorController.begin()) {
-    Serial.println("WARNING: PCA9685 not found, motor controller in mock mode");
-  }
-
-  // Check if running in mock mode
-  if (motorController.isMockMode()) {
-    Serial.println("===========================================");
-    Serial.println("RUNNING IN MOTOR MOCK MODE - NO HARDWARE");
-    Serial.println("Motor commands will be logged to Serial");
-    Serial.println("===========================================");
-  }
+  motorController.begin();
   Serial.println();
 
   // Initialize LVGL UI (includes display and touch)
@@ -262,10 +252,6 @@ void scanI2C() {
       // Identify known devices
       if (address == 0x29) {
         Serial.print(" - TSL2591 Light Sensor");
-      } else if (address == 0x60) {
-        Serial.print(" - PCA9685 Motor Controller");
-      } else if (address == 0x61) {
-        Serial.print(" - PCA9685 Solenoid Controller");
       }
       Serial.println();
       deviceCount++;

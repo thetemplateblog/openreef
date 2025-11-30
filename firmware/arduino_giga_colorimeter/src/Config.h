@@ -57,22 +57,16 @@ enum TSL2591_IntegrationTime {
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 480
 
-// Motor controller (PCA9685)
-#define PCA9685_I2C_ADDRESS 0x60
-#define PCA9685_FREQUENCY 1600  // PWM frequency for motors
-
 // Number of motors/solenoids
 #define NUM_MOTORS 4
 #define NUM_SOLENOIDS 4
 
-// Default sensor settings
+// Default sensor settings (LOW gain for always-on LED, 100MS integration)
 #define DEFAULT_GAIN TSL2591_GAIN_LOW
-#define DEFAULT_INTEGRATION_TIME TSL2591_INTEGRATIONTIME_500MS
+#define DEFAULT_INTEGRATION_TIME TSL2591_INTEGRATIONTIME_100MS
 #define DEFAULT_PRECISION 2
 
 // I2C Addresses
 #define TSL2591_I2C_ADDRESS 0x29
-#define PCA9685_MOTOR_ADDRESS 0x60
-#define PCA9685_SOLENOID_ADDRESS 0x61  // If using separate board
 
 #endif // CONFIG_H

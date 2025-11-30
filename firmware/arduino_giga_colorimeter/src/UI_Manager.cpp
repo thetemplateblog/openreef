@@ -792,14 +792,26 @@ void UI_Manager::handleCalibrationMeasure() {
     return;
   }
 
-  // Measure current absorbance
-  float raw = lightSensor.getValue();
+  // Show measuring status
+  lv_label_set_text(_label_cal_instructions, "Measuring standard...\nPlease wait...");
+
+  // Take multiple readings and average (same as blank)
+  float sum = 0.0;
+  for (int i = 0; i < NUM_BLANK_SAMPLES; i++) {
+    sum += lightSensor.getValue();
+    lv_timer_handler(); // Keep UI responsive
+    delay(BLANK_DT);
+  }
+  float raw = sum / NUM_BLANK_SAMPLES;
+
   float transmittance = raw / blankValue;
   float absorbance = -log10(transmittance);
   if (absorbance < 0.0) absorbance = 0.0;
 
-  Serial.print("Calibration measurement: raw=");
+  Serial.print("Calibration measurement (averaged): raw=");
   Serial.print(raw);
+  Serial.print(" blank=");
+  Serial.print(blankValue);
   Serial.print(" trans=");
   Serial.print(transmittance);
   Serial.print(" abs=");
@@ -815,16 +827,18 @@ void UI_Manager::handleCalibrationMeasure() {
     // Update the calibration
     _calibrations->updateCoefficient(_currentCalibrationName, newCoefficient);
 
-    // Show success on calibration screen
+    // Show brief success message
     char successMsg[200];
     snprintf(successMsg, sizeof(successMsg),
-             "SUCCESS!\n\nCalibration: %s\nStandard: %.3f %s\nAbsorbance: %.4f\nNew coefficient: %.2f\n\nPress BACK to return to menu",
-             _currentCalibrationName.c_str(), standard, _calibrations->getUnits(_currentCalibrationName).c_str(), absorbance, newCoefficient);
+             "SUCCESS!\n\nCalibration: %s\nNew coefficient: %.2f\n\nReturning to menu...",
+             _currentCalibrationName.c_str(), newCoefficient);
     lv_label_set_text(_label_cal_instructions, successMsg);
 
-    // Hide both buttons
-    lv_obj_add_flag(_btn_cal_blank, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(_btn_cal_measure, LV_OBJ_FLAG_HIDDEN);
+    // Wait briefly to show success message
+    delay(2000);
+
+    // Return to measure screen
+    showMeasureScreen();
   } else {
     lv_label_set_text(_label_cal_instructions, "ERROR: Absorbance too low!\nCheck sample and blank\nPress BACK to retry");
     Serial.println("Error: Absorbance too low");
