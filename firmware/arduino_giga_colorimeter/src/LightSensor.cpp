@@ -8,7 +8,6 @@
 LightSensor::LightSensor() {
   _gain = DEFAULT_GAIN;
   _integrationTime = DEFAULT_INTEGRATION_TIME;
-  _channel = 0; // Default to full spectrum (channel 0)
 }
 
 bool LightSensor::begin() {
@@ -78,11 +77,8 @@ void LightSensor::disable() {
 }
 
 uint16_t LightSensor::getValue() {
-  if (_channel == 0) {
-    return getChannel0();
-  } else {
-    return getChannel1();
-  }
+  // Return full spectrum reading (CH0) - visible + IR
+  return getChannel0();
 }
 
 uint16_t LightSensor::getChannel0() {
@@ -101,8 +97,22 @@ uint16_t LightSensor::getChannel1() {
 
 void LightSensor::setGain(TSL2591_Gain gain) {
   _gain = gain;
+
+  // Set new gain (can be changed while sensor is running)
   write8(TSL2591_REGISTER_CONTROL, _gain | _integrationTime);
-  delay(120); // Wait for integration to complete
+
+  // Verify the gain was written
+  uint8_t control = read8(TSL2591_REGISTER_CONTROL);
+  Serial.print("setGain: wrote 0x");
+  Serial.print(_gain | _integrationTime, HEX);
+  Serial.print(", readback 0x");
+  Serial.print(control, HEX);
+  Serial.print(" (gain bits: 0x");
+  Serial.print(control & 0x30, HEX);
+  Serial.println(")");
+
+  // Wait for next integration cycle to complete
+  delay(120);
 }
 
 TSL2591_Gain LightSensor::getGain() {
@@ -142,18 +152,33 @@ void LightSensor::write8(uint8_t reg, uint8_t value) {
 uint8_t LightSensor::read8(uint8_t reg) {
   Wire.beginTransmission(TSL2591_I2C_ADDRESS);
   Wire.write(TSL2591_COMMAND_BIT | reg);
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) {
+    Serial.println("ERROR: I2C transmission failed in read8");
+    return 0;
+  }
 
-  Wire.requestFrom(TSL2591_I2C_ADDRESS, 1);
+  uint8_t bytesReceived = Wire.requestFrom(TSL2591_I2C_ADDRESS, (uint8_t)1);
+  if (bytesReceived != 1) {
+    Serial.println("ERROR: I2C read failed - no data received");
+    return 0;
+  }
   return Wire.read();
 }
 
 uint16_t LightSensor::read16(uint8_t reg) {
   Wire.beginTransmission(TSL2591_I2C_ADDRESS);
   Wire.write(TSL2591_COMMAND_BIT | reg);
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) {
+    Serial.println("ERROR: I2C transmission failed in read16");
+    return 0;
+  }
 
-  Wire.requestFrom(TSL2591_I2C_ADDRESS, 2);
+  uint8_t bytesReceived = Wire.requestFrom(TSL2591_I2C_ADDRESS, (uint8_t)2);
+  if (bytesReceived != 2) {
+    Serial.print("ERROR: I2C read failed - expected 2 bytes, got ");
+    Serial.println(bytesReceived);
+    return 0;
+  }
   uint8_t low = Wire.read();
   uint8_t high = Wire.read();
   return (high << 8) | low;

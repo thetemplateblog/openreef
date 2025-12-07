@@ -8,29 +8,29 @@
  * - Arduino Giga R1 WiFi
  * - Arduino Giga Display Shield (800x480)
  * - TSL2591 Light Sensor (I2C)
- * - PCA9685 Motor Driver (I2C, optional)
- * - Solenoid Driver (optional)
  *
  * Author: Ported to Arduino C++
  * Version: 1.0.0
  */
 
 #include <Wire.h>
+#include <algorithm>
 #include "src/Config.h"
+#include "src/Configuration.h"
 #include "src/LightSensor.h"
 #include "src/Calibrations.h"
 #include "src/UI_Manager.h"
-#include "src/MotorController.h"
 
 // Forward declarations
+float takeSensorMeasurement();
 void performBlank();
 void scanI2C();
 
 // Global objects
+Configuration config;
 LightSensor lightSensor;
 Calibrations calibrations;
 UI_Manager uiManager;
-MotorController motorController;
 
 // System state
 float blankValue = 1.0;
@@ -38,6 +38,7 @@ bool sensorInitialized = false;
 bool isBlanked = false;
 String currentMeasurement = "Absorbance";
 bool blankRequested = false;
+TSL2591_Gain currentGain = TSL2591_GAIN_LOW;  // Track current gain for measurements
 
 void setup() {
   Serial.begin(115200);
@@ -58,33 +59,55 @@ void setup() {
   scanI2C();
   Serial.println();
 
+  // Load configuration
+  Serial.println("Step 2: Loading configuration...");
+  if (!config.load()) {
+    Serial.println("WARNING: Failed to load configuration - using defaults");
+  }
+  Serial.println();
+
   // Initialize light sensor
-  Serial.println("Step 2: Initializing light sensor...");
+  Serial.println("Step 3: Initializing light sensor...");
   sensorInitialized = lightSensor.begin();
   if (!sensorInitialized) {
     Serial.println("WARNING: TSL2591 sensor initialization failed!");
     Serial.println("System will continue but readings will show 'SENSOR ERROR'");
   } else {
     Serial.println("Light sensor initialized OK");
+
+    // Apply configuration settings to sensor
+    Serial.println("Applying configuration to sensor...");
+
+    // Use config default gain
+    TSL2591_Gain gainSetting = config.getGain();
+    Serial.print("  Setting gain to: 0x");
+    Serial.print(gainSetting, HEX);
+    Serial.print(" (");
+    if (gainSetting == TSL2591_GAIN_LOW) Serial.print("1x");
+    else if (gainSetting == TSL2591_GAIN_MED) Serial.print("25x");
+    else if (gainSetting == TSL2591_GAIN_HIGH) Serial.print("428x");
+    else if (gainSetting == TSL2591_GAIN_MAX) Serial.print("9876x");
+    Serial.println(")");
+    lightSensor.setGain(gainSetting);
+
+    lightSensor.setIntegrationTime(config.getIntegrationTime());
+    Serial.print("  Integration time set to ");
+    Serial.print(config.getIntegrationTimeMs());
+    Serial.println("ms");
   }
   Serial.println();
 
   // Load calibrations from SD card or internal storage
-  Serial.println("Step 3: Loading calibrations...");
+  Serial.println("Step 4: Loading calibrations...");
   if (!calibrations.load()) {
     Serial.println("WARNING: No calibrations loaded");
   }
   Serial.println();
 
-  // Initialize motor controller (stub)
-  Serial.println("Step 4: Initializing motor controller...");
-  motorController.begin();
-  Serial.println();
-
   // Initialize LVGL UI (includes display and touch)
   Serial.println("Step 5: Initializing LVGL UI...");
   Serial.println("This may take a moment...\n");
-  uiManager.begin(&motorController, &calibrations);
+  uiManager.begin(&calibrations);
 
   // Set sensor status in UI
   uiManager.setSensorStatus(sensorInitialized);
@@ -96,9 +119,6 @@ void setup() {
 }
 
 void loop() {
-  static unsigned long lastPrint = 0;
-  static unsigned long lastDebug = 0;
-
   // Update LVGL UI (handles touch internally)
   uiManager.update();
 
@@ -108,118 +128,112 @@ void loop() {
     performBlank();
   }
 
-  // Update measurement display
-  updateMeasurement();
-
-  // Debug sensor readings every 2 seconds
-  if (sensorInitialized && millis() - lastDebug > 2000) {
-    uint16_t raw = lightSensor.getValue();
-    Serial.print("Sensor reading: ");
-    Serial.print(raw);
-    Serial.print(" (0x");
-    Serial.print(raw, HEX);
-    Serial.println(")");
-    lastDebug = millis();
-  }
-
-  // Heartbeat - print every 5 seconds to show loop is running
-  if (millis() - lastPrint > 5000) {
-    Serial.println("Loop running OK");
-    lastPrint = millis();
-  }
-
   delay(10); // LVGL needs frequent updates
 }
 
-void updateMeasurement() {
-  static unsigned long lastDebugCalc = 0;
-  float value = 0.0;
-
-  // Check if sensor is initialized
+/**
+ * Takes a sensor measurement with consistent procedure:
+ * 1. Reset sensor (power cycle)
+ * 2. Restore gain setting
+ * 3. Wait for stabilization
+ * 4. Collect 50 samples
+ * 5. Return median value
+ *
+ * Returns: Median sensor value, or -1.0 on error
+ */
+float takeSensorMeasurement() {
   if (!sensorInitialized) {
-    uiManager.setMeasurementValue(0.0, false);
-    return;
+    Serial.println("ERROR: Sensor not initialized");
+    return -1.0;
   }
 
-  try {
-    if (currentMeasurement == "Raw Sensor") {
-      value = lightSensor.getValue();
-    }
-    else if (currentMeasurement == "Transmittance") {
-      float raw = lightSensor.getValue();
-      value = raw / blankValue;
-    }
-    else if (currentMeasurement == "Absorbance") {
-      float raw = lightSensor.getValue();
-      float transmittance = raw / blankValue;
-      value = -log10(transmittance);
+  // Reset sensor before measurement for fresh state
+  Serial.println("Resetting sensor...");
+  lightSensor.disable();
+  delay(100);  // Wait for sensor to power down
+  lightSensor.enable();
+  delay(SENSOR_STABILIZATION_DELAY_MS);  // 10 second stabilization
 
-      // Debug output every 3 seconds
-      if (millis() - lastDebugCalc > 3000) {
-        Serial.print("Absorbance calc: raw=");
-        Serial.print(raw);
-        Serial.print(" blank=");
-        Serial.print(blankValue);
-        Serial.print(" trans=");
-        Serial.print(transmittance);
-        Serial.print(" abs=");
-        Serial.print(value);
-        Serial.print(" (before clamp)");
-        lastDebugCalc = millis();
-      }
+  // Restore gain setting after reset
+  lightSensor.setGain(currentGain);
+  Serial.println("Sensor reset and stabilized");
 
-      if (value < 0.0) value = 0.0;
+  // Collect 50 samples for measurement
+  Serial.print("Collecting ");
+  Serial.print(NUM_BLANK_SAMPLES);
+  Serial.println(" samples (using median)...");
 
-      if (millis() - lastDebugCalc < 100) {
-        Serial.print(" final=");
-        Serial.println(value);
-      }
-    }
-    else {
-      // Check if it's a calibration
-      float raw = lightSensor.getValue();
-      float transmittance = raw / blankValue;
-      float absorbance = -log10(transmittance);
-      if (absorbance < 0.0) absorbance = 0.0;
+  float samples[NUM_BLANK_SAMPLES];
+  for (int i = 0; i < NUM_BLANK_SAMPLES; i++) {
+    uint16_t reading = lightSensor.getValue();
+    samples[i] = reading;
 
-      value = calibrations.apply(currentMeasurement, absorbance);
-
-      // Debug output every 3 seconds
-      if (millis() - lastDebugCalc > 3000) {
-        Serial.print("Calibration: ");
-        Serial.print(currentMeasurement);
-        Serial.print(" abs=");
-        Serial.print(absorbance);
-        Serial.print(" value=");
-        Serial.println(value);
-        lastDebugCalc = millis();
-      }
+    // Check for overflow
+    if (reading >= lightSensor.getMaxCounts()) {
+      Serial.println("ERROR: Sensor overflow during measurement");
+      return -1.0;
     }
 
-    uiManager.setMeasurementValue(value, isBlanked);
+    delay(BLANK_DT);  // 50ms delay between samples
   }
-  catch (...) {
-    uiManager.showOverflow();
-  }
+
+  // Calculate median
+  std::sort(samples, samples + NUM_BLANK_SAMPLES);
+  float median = samples[NUM_BLANK_SAMPLES / 2];
+
+  Serial.print("Measurement median from ");
+  Serial.print(NUM_BLANK_SAMPLES);
+  Serial.print(" samples: ");
+  Serial.println(median, 2);
+
+  return median;
 }
 
 void performBlank() {
   Serial.println("Performing blank...");
 
-  // Check if sensor is initialized
-  if (!sensorInitialized) {
-    Serial.println("ERROR: Cannot blank - sensor not initialized!");
+  // Set gain for current measurement type
+  currentGain = TSL2591_GAIN_LOW;  // Default
+  if (calibrations.hasCalibration(currentMeasurement)) {
+    int measurementGain = calibrations.getGain(currentMeasurement);
+    if (measurementGain == 1) currentGain = TSL2591_GAIN_LOW;
+    else if (measurementGain == 25) currentGain = TSL2591_GAIN_MED;
+    else if (measurementGain == 428) currentGain = TSL2591_GAIN_HIGH;
+    else if (measurementGain == 9876) currentGain = TSL2591_GAIN_MAX;
+
+    Serial.print("Setting gain for ");
+    Serial.print(currentMeasurement);
+    Serial.print(": ");
+    Serial.print(measurementGain);
+    Serial.println("x");
+  }
+
+  // Take measurement using standard procedure
+  float measurement = takeSensorMeasurement();
+
+  if (measurement < 0.0) {
+    uiManager.showMessage("Blank Failed", "Sensor error - check serial");
+    delay(2000);
+    uiManager.showMeasureScreen();
+    isBlanked = false;
+    blankValue = 1.0;
     return;
   }
 
-  // Take multiple readings and average
-  float sum = 0.0;
-  for (int i = 0; i < NUM_BLANK_SAMPLES; i++) {
-    sum += lightSensor.getValue();
-    delay(BLANK_DT);
+  blankValue = measurement;
+
+  // Validate blank value
+  if (blankValue < MIN_BLANK_VALUE) {
+    Serial.print("ERROR: Blank value too low: ");
+    Serial.println(blankValue, 4);
+    uiManager.showMessage("Blank Failed", "Value too low - check sensor");
+    delay(2000);
+    uiManager.showMeasureScreen();
+    isBlanked = false;
+    blankValue = 1.0; // Reset to safe value
+    return;
   }
 
-  blankValue = sum / NUM_BLANK_SAMPLES;
   isBlanked = true;
 
   Serial.print("Blank value set to: ");

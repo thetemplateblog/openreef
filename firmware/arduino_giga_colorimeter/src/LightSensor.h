@@ -48,19 +48,18 @@ public:
   // Check if sensor reading is overflowed
   bool isOverflow();
 
+  // Enable/disable sensor power (for power saving)
+  void enable();
+  void disable();
+
 private:
   TSL2591_Gain _gain;
   TSL2591_IntegrationTime _integrationTime;
-  uint8_t _channel; // 0 = full spectrum, 1 = IR
 
   // I2C communication
   void write8(uint8_t reg, uint8_t value);
   uint8_t read8(uint8_t reg);
   uint16_t read16(uint8_t reg);
-
-  // Enable/disable sensor
-  void enable();
-  void disable();
 };
 
 #endif // LIGHT_SENSOR_H

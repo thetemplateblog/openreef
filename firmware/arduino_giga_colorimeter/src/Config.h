@@ -11,15 +11,9 @@
 // Version
 #define FIRMWARE_VERSION "1.0.0"
 
-// File paths
-#define CALIBRATIONS_FILE "/sd/calibrations.json"
-#define CONFIGURATION_FILE "/sd/configuration.json"
-
 // Timing constants
-#define LOOP_DT 100              // Loop delay in ms
-#define BLANK_DT 50              // Blanking sample delay in ms
-#define DEBOUNCE_DT 600          // Button debounce in ms
-#define NUM_BLANK_SAMPLES 50     // Number of samples for blanking
+#define BLANK_DT 50              // Blanking sample delay in ms (match v0.1.1 firmware)
+#define NUM_BLANK_SAMPLES 50     // Number of samples for blanking (median calculation, match v0.1.1)
 
 // TSL2591 Sensor constants
 #define TSL2591_MAX_COUNT_100MS 36863  // 0x8FFF
@@ -43,30 +37,21 @@ enum TSL2591_IntegrationTime {
   TSL2591_INTEGRATIONTIME_600MS = 0x05
 };
 
-// Color definitions (RGB565 for display)
-#define COLOR_BLACK   0x0000
-#define COLOR_GRAY    0x8410
-#define COLOR_RED     0xF800
-#define COLOR_GREEN   0x07E0
-#define COLOR_BLUE    0x001F
-#define COLOR_WHITE   0xFFFF
-#define COLOR_ORANGE  0xFDA0
-#define COLOR_YELLOW  0xFFE0
-
-// Display dimensions (Giga Display Shield - rotated 90 degrees)
+// Display dimensions (Giga Display Shield)
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 480
 
-// Number of motors/solenoids
-#define NUM_MOTORS 4
-#define NUM_SOLENOIDS 4
-
-// Default sensor settings (LOW gain for always-on LED, 100MS integration)
+// Default sensor settings (LOW gain for very bright LED)
 #define DEFAULT_GAIN TSL2591_GAIN_LOW
 #define DEFAULT_INTEGRATION_TIME TSL2591_INTEGRATIONTIME_100MS
 #define DEFAULT_PRECISION 2
 
 // I2C Addresses
 #define TSL2591_I2C_ADDRESS 0x29
+
+// Measurement constants
+#define SENSOR_STABILIZATION_DELAY_MS 10000  // LED thermal stabilization - critical for accuracy
+#define MIN_BLANK_VALUE 0.001
+#define MIN_ABSORBANCE_THRESHOLD 0.001
 
 #endif // CONFIG_H

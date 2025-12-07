@@ -11,6 +11,7 @@
 #include <map>
 #include <LittleFileSystem.h>
 #include <BlockDevice.h>
+#include "Config.h"  // For TSL2591_Gain enum
 
 #define MAX_CALIBRATIONS 10
 #define MAX_COEF 10
@@ -19,6 +20,8 @@ struct CalibrationData {
   String name;
   String units;
   String led;  // LED wavelength (e.g., "625nm")
+  int gain;    // Sensor gain (1, 25, 428, or 9876)
+  String integration_time;  // Integration time (e.g., "100ms", "200ms")
   String fitType;  // "polynomial"
   std::vector<float> fitCoef;
   float rangeMin;
@@ -42,6 +45,8 @@ public:
   bool hasCalibration(String name);
   String getUnits(String name);
   String getLED(String name);
+  int getGain(String name);
+  String getIntegrationTime(String name);
   float getStandard(String name);
   int getCount();
   String getNameByIndex(int index);
@@ -49,8 +54,8 @@ public:
   // Get all calibration names
   std::vector<String> getNames();
 
-  // Update calibration coefficient
-  void updateCoefficient(String name, float newCoefficient);
+  // Update calibration coefficients (intercept and slope)
+  void updateCoefficients(String name, float intercept, float slope);
 
 private:
   std::map<String, CalibrationData> _calibrations;
@@ -58,9 +63,10 @@ private:
   // Load built-in calibrations
   bool loadBuiltInCalibrations();
 
-  // Persistent storage helpers (using global KVStore API)
-  bool saveCoefficient(String name, float coefficient);
-  bool loadCoefficient(String name, float& coefficient);
+  // Persistent storage helpers (using LittleFS)
+  bool saveCoefficients(String name, float intercept, float slope);
+  bool loadCoefficients(String name, float& intercept, float& slope);
+  String getCalibrationFilename(const String& name);
 
   // Parse JSON and populate calibrations
   bool parseJSON(const char* jsonString);

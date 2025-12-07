@@ -1,6 +1,0 @@
-{
-  "gain" : "low",
-  "integration_time" : "500ms",
-  "startup" : "Absorbance",
-  "precision" : 2
-} 

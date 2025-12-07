@@ -143,21 +143,110 @@ Device settings:
 
 ```json
 {
-  "gain": "low",
-  "integration_time": "500ms",
+  "gain": 1,
+  "integration_time": "600ms",
   "startup": "Absorbance",
   "precision": 2
 }
 ```
+
+**Parameters:**
+- **gain**: Numeric TSL2591 gain multiplier: `1`, `25`, `428`, or `9876` (default gain, overridden by auto-gain during calibration)
+- **integration_time**: Sensor integration time: `"100ms"`, `"200ms"`, `"300ms"`, `"400ms"`, `"500ms"`, or `"600ms"`
+- **startup**: Initial measurement mode on boot
+- **precision**: Decimal places for display
+
+## Auto-Gain System
+
+### How Auto-Gain Works
+
+The colorimeter automatically optimizes sensor gain **during calibration only** to ensure accurate, repeatable measurements.
+
+#### TSL2591 Sensor Gain Options
+
+The TSL2591 light sensor has 4 fixed hardware gain settings:
+
+| Gain Value | Multiplier | Use Case |
+|------------|------------|----------|
+| **1x** | 1× | Very bright light (high LED intensity, clear samples) |
+| **25x** | 25× | Moderate light |
+| **428x** | 428× | Dim light |
+| **9876x** | 9,876× | Very dim light |
+
+**Note:** These are the only options available - the sensor hardware does not support intermediate values like 2x, 5x, 10x, etc.
+
+#### Auto-Gain Algorithm
+
+During **calibration** (MENU → Calibrate → select test):
+
+1. **Target Range:** Aims for sensor readings at 40-60% of maximum (26,214 - 39,321 counts for 600ms integration)
+2. **Tests All Gains:** Tries each gain setting from lowest (1x) to highest (9876x)
+3. **Selects Optimal:** Picks the gain that gets closest to target without overflow
+4. **Saves Per-Test:** Stores gain in LittleFS as `/fs/cal_<TestName>.gain`
+
+**Why 40-60% target?**
+- Avoids overflow (max: 65,535 counts)
+- Provides headroom for sample variation
+- Maintains good signal-to-noise ratio
+- Ensures measurement precision
+
+#### Per-Test Gain Storage
+
+Each test has its own optimized gain setting:
+```
+/fs/cal_Phosphate_Hanna.gain  → Stores optimal gain for Phosphate
+/fs/cal_Nitrate_API.gain      → Stores optimal gain for Nitrate
+/fs/cal_Nitrite_API.gain      → Stores optimal gain for Nitrite
+```
+
+**Why per-test gains?**
+Different reagents create different color intensities:
+- Phosphate reagent (blue) may need 1x gain (very bright)
+- Nitrate reagent (amber) may need 25x gain (moderate)
+- Nitrite reagent (pink) may need 428x gain (dimmer)
+
+#### Workflow
+
+**First Time (Calibration):**
+1. MENU → Calibrate → Select test (e.g., "Phosphate Hanna")
+2. Insert reagent blank
+3. Press **BLANK** → Auto-gain runs, finds optimal gain, saves it
+4. Insert standard (e.g., 0.307 ppm)
+5. Press **MEASURE** → Calculates coefficient, saves it
+
+**Every Time After (Normal Use):**
+1. Select test → Loads saved gain automatically
+2. Insert reagent blank
+3. Press **BLANK** → Uses saved gain (fast, no auto-gain)
+4. Insert sample
+5. Press **MEASURE** → Takes reading with optimized gain
+
+#### Serial Monitor Output Example
+
+```
+Auto-gain target range: 26214 - 39321
+  1x: 46657 - too high
+  WARNING: Even lowest gain (1x) is too high - light source very bright
+Selected gain: 1x (reading: 46657)
+Saving gain for 'Phosphate Hanna' to LittleFS: SUCCESS - Gain 0x0 saved
+```
+
+This shows:
+- Target range calculated from integration time
+- 1x gain tested: 46,657 counts (71% of max)
+- Above ideal range but below overflow
+- No lower gain available, so 1x selected
+- Gain saved to LittleFS for future use
 
 ## Usage
 
 ### Basic Operation
 
 1. **Power On** - System initializes and shows measurement screen
-2. **Blank** - Tap BLANK button to capture blank reference
-3. **Measure** - Insert sample and read value
-4. **Menu** - Access different measurement modes and controls
+2. **Select Test** - Loads saved gain for that test (if calibrated)
+3. **Blank** - Tap BLANK button to capture blank reference
+4. **Measure** - Insert sample and read value
+5. **Menu** - Access different measurement modes and controls
 
 ### Measurement Modes
 
@@ -195,6 +284,17 @@ This gives you **47x more memory**, eliminating all the memory optimization work
 - Check I2C connections
 - Verify sensor address (0x29)
 - Try I2C scanner sketch
+
+### "No saved gain for '<TestName>' - please calibrate this test first"
+- Normal on first use of a test
+- Run calibration workflow: MENU → Calibrate → Select test → BLANK → MEASURE
+- Gain will be auto-optimized and saved during calibration
+
+### Readings at 1x gain are "too high" but measurement works
+- Normal if LED is very bright or optical path is efficient
+- Reading of 46,657 counts (71% of max) is safe - not overflowing
+- System uses lowest available gain (1x)
+- No adjustment needed - measurements are still accurate
 
 ### "SD card initialization failed"
 - Ensure SD card is formatted as FAT32

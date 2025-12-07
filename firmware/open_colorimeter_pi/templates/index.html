@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Colorimeter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Open Colorimeter</h1>
+            <div class="status-bar">
+                <span class="status-indicator" id="sensor-status">⚫ Sensor</span>
+                <span class="status-indicator" id="motor-status">⚫ Motors</span>
+                <span class="status-indicator" id="blank-status">⚫ Not Blanked</span>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" onclick="showTab('measure')">Measure</button>
+            <button class="tab-btn" onclick="showTab('motors')">Motors</button>
+            <button class="tab-btn" onclick="showTab('calibrations')">Calibrations</button>
+        </nav>
+
+        <!-- Measure Tab -->
+        <div id="measure-tab" class="tab-content active">
+            <div class="card">
+                <h2>Measurements</h2>
+                <button class="btn btn-primary" onclick="blankSensor()">Blank Sensor</button>
+                <button class="btn btn-secondary" onclick="refreshMeasurement()">Refresh</button>
+
+                <div class="measurement-grid">
+                    <div class="measurement-box">
+                        <h3>Raw Sensor</h3>
+                        <div class="value" id="raw-value">---</div>
+                        <div class="units">counts</div>
+                    </div>
+
+                    <div class="measurement-box">
+                        <h3>Transmittance</h3>
+                        <div class="value" id="transmittance-value">---</div>
+                        <div class="units">T</div>
+                    </div>
+
+                    <div class="measurement-box">
+                        <h3>Absorbance</h3>
+                        <div class="value" id="absorbance-value">---</div>
+                        <div class="units">A</div>
+                    </div>
+                </div>
+
+                <div id="calibrated-measurements">
+                    <!-- Calibrated values will be inserted here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Auto-Refresh</h2>
+                <label class="switch">
+                    <input type="checkbox" id="auto-refresh" onchange="toggleAutoRefresh()">
+                    <span class="slider"></span>
+                </label>
+                <span id="auto-refresh-label">Off</span>
+            </div>
+        </div>
+
+        <!-- Motors Tab -->
+        <div id="motors-tab" class="tab-content">
+            <div class="card">
+                <h2>Motor Control</h2>
+
+                <div class="motor-controls">
+                    <div class="motor-box" id="motor-1">
+                        <h3>Motor 1</h3>
+                        <input type="range" min="-100" max="100" value="0" class="motor-slider"
+                               oninput="updateMotor(1, this.value)">
+                        <div class="motor-value">0%</div>
+                        <button class="btn btn-danger" onclick="stopMotor(1)">Stop</button>
+                    </div>
+
+                    <div class="motor-box" id="motor-2">
+                        <h3>Motor 2</h3>
+                        <input type="range" min="-100" max="100" value="0" class="motor-slider"
+                               oninput="updateMotor(2, this.value)">
+                        <div class="motor-value">0%</div>
+                        <button class="btn btn-danger" onclick="stopMotor(2)">Stop</button>
+                    </div>
+
+                    <div class="motor-box" id="motor-3">
+                        <h3>Motor 3</h3>
+                        <input type="range" min="-100" max="100" value="0" class="motor-slider"
+                               oninput="updateMotor(3, this.value)">
+                        <div class="motor-value">0%</div>
+                        <button class="btn btn-danger" onclick="stopMotor(3)">Stop</button>
+                    </div>
+
+                    <div class="motor-box" id="motor-4">
+                        <h3>Motor 4</h3>
+                        <input type="range" min="-100" max="100" value="0" class="motor-slider"
+                               oninput="updateMotor(4, this.value)">
+                        <div class="motor-value">0%</div>
+                        <button class="btn btn-danger" onclick="stopMotor(4)">Stop</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" onclick="stopAllMotors()">Stop All Motors</button>
+            </div>
+        </div>
+
+        <!-- Calibrations Tab -->
+        <div id="calibrations-tab" class="tab-content">
+            <div class="card">
+                <h2>Available Calibrations</h2>
+                <div id="calibrations-list">
+                    <!-- Calibrations will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

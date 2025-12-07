@@ -1,15 +1,16 @@
 {
-  "Phosphate API": {
+  "Nitrite Hanna": {
     "units": "ppm",
-    "led": "625",
+    "led": "880",
     "fit_type": "polynomial",
     "fit_coef": [
-      3.500142,
-      -1.194604
+      0,
+      2.709,
+      0.0
     ],
     "range": {
       "min": 0.0,
-      "max": 2.79
+      "max": 1.0
     }
   },
   "Nitrate API": {

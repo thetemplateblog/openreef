@@ -4,7 +4,7 @@
  */
 
 #include "UI_Manager.h"
-#include "MotorController.h"
+#include "Configuration.h"
 #include "Calibrations.h"
 #include "LightSensor.h"
 
@@ -14,6 +14,11 @@ extern String currentMeasurement;
 extern float blankValue;
 extern bool isBlanked;
 extern LightSensor lightSensor;
+extern Configuration config;
+extern TSL2591_Gain currentGain;
+
+// External functions
+extern float takeSensorMeasurement();
 
 // Global pointer to UI manager instance for callbacks
 static UI_Manager* ui_instance = nullptr;
@@ -24,6 +29,10 @@ static Arduino_GigaDisplayTouch* touchDetector_ptr = nullptr;
 // LVGL event callbacks (C-style functions that call class methods)
 static void blank_btn_event_cb(lv_event_t* e) {
   if (ui_instance) ui_instance->handleBlankButton();
+}
+
+static void measure_btn_event_cb(lv_event_t* e) {
+  if (ui_instance) ui_instance->handleMeasureButton();
 }
 
 static void menu_btn_event_cb(lv_event_t* e) {
@@ -58,36 +67,6 @@ static void calibration_btn_event_cb(lv_event_t* e) {
   }
 }
 
-static void motors_btn_event_cb(lv_event_t* e) {
-  if (ui_instance) ui_instance->handleMotorsButton();
-}
-
-static void motor1_btn_event_cb(lv_event_t* e) {
-  if (ui_instance) ui_instance->handleMotorSelect(1);
-}
-
-static void motor2_btn_event_cb(lv_event_t* e) {
-  if (ui_instance) ui_instance->handleMotorSelect(2);
-}
-
-static void motor_forward_btn_event_cb(lv_event_t* e) {
-  if (ui_instance) {
-    ui_instance->handleMotorForward(ui_instance->_currentMotorNum);
-  }
-}
-
-static void motor_reverse_btn_event_cb(lv_event_t* e) {
-  if (ui_instance) {
-    ui_instance->handleMotorReverse(ui_instance->_currentMotorNum);
-  }
-}
-
-static void motor_stop_btn_event_cb(lv_event_t* e) {
-  if (ui_instance) {
-    ui_instance->handleMotorStop(ui_instance->_currentMotorNum);
-  }
-}
-
 static void calibrate_btn_event_cb(lv_event_t* e) {
   if (ui_instance) ui_instance->handleCalibrateButton();
 }
@@ -114,20 +93,19 @@ UI_Manager::UI_Manager() : _display(800, 480, GigaDisplayShield) {
   _measurementName = "Absorbance";
   _measurementUnits = "";
   _measurementValue = 0.0;
+  _rawValue = 0.0;
   _isBlanked = false;
   _sensorInitialized = false;
-  _motorController = nullptr;
   _calibrations = nullptr;
-  _currentMotorNum = 1;
   _calBlanked = false;
   _calBlankAbsorbance = 0.0;
   _currentCalibrationName = "";
+  _lastCalMeasureTime = 0;
 
   ui_instance = this;
 }
 
-void UI_Manager::begin(MotorController* motorController, Calibrations* calibrations) {
-  _motorController = motorController;
+void UI_Manager::begin(Calibrations* calibrations) {
   _calibrations = calibrations;
 
   Serial.println("UI_Manager: Starting initialization...");
@@ -161,12 +139,6 @@ void UI_Manager::begin(MotorController* motorController, Calibrations* calibrati
   createMenuScreen();
   Serial.println("UI_Manager: Menu screen created");
 
-  createMotorSelectScreen();
-  Serial.println("UI_Manager: Motor select screen created");
-
-  createMotorControlScreen();
-  Serial.println("UI_Manager: Motor control screen created");
-
   createMessageScreen();
   Serial.println("UI_Manager: Message screen created");
 
@@ -185,23 +157,63 @@ void UI_Manager::update() {
 
   // Update measurement display if on measure screen
   if (_currentScreen == SCREEN_MEASURE && _label_value != nullptr) {
-    char buf[64];
+    char buf[128];
     if (_measurementUnits.length() > 0) {
-      snprintf(buf, sizeof(buf), "%.2f %s", _measurementValue, _measurementUnits.c_str());
+      snprintf(buf, sizeof(buf), "%.2f %s\nRaw: %.0f", _measurementValue, _measurementUnits.c_str(), _rawValue);
     } else {
-      snprintf(buf, sizeof(buf), "%.2f", _measurementValue);
+      snprintf(buf, sizeof(buf), "%.2f\nRaw: %.0f", _measurementValue, _rawValue);
     }
     lv_label_set_text(_label_value, buf);
 
-    // Update status label
+    // Update status label - use GLOBAL isBlanked
     if (!_sensorInitialized) {
       lv_label_set_text(_label_status, "SENSOR NOT CONNECTED");
-    } else if (_isBlanked) {
+    } else if (isBlanked) {
       lv_label_set_text(_label_status, "BLANKED");
     } else {
       lv_label_set_text(_label_status, "NOT BLANKED");
     }
+
+    // Show/hide MEASURE button based on GLOBAL blank status
+    if (isBlanked) {
+      lv_obj_clear_flag(_btn_measure, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(_btn_measure, LV_OBJ_FLAG_HIDDEN);
+    }
   }
+}
+
+/**
+ * Helper function to create a button with label - reduces code duplication
+ * @param parent Parent object for the button
+ * @param text Button label text
+ * @param width Button width
+ * @param height Button height
+ * @param callback Event callback function
+ * @param x X position (-1 to skip positioning, for flex containers)
+ * @param y Y position (-1 to skip positioning, for flex containers)
+ * @return Pointer to created button object
+ */
+lv_obj_t* UI_Manager::createButton(lv_obj_t* parent, const char* text, int width, int height,
+                                   lv_event_cb_t callback, int x, int y) {
+  // Create button
+  lv_obj_t* btn = lv_btn_create(parent);
+  lv_obj_set_size(btn, width, height);
+
+  // Set position if coordinates provided
+  if (x >= 0 && y >= 0) {
+    lv_obj_set_pos(btn, x, y);
+  }
+
+  // Add event callback
+  lv_obj_add_event_cb(btn, callback, LV_EVENT_CLICKED, nullptr);
+
+  // Create and configure label
+  lv_obj_t* label = lv_label_create(btn);
+  lv_label_set_text(label, text);
+  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+
+  return btn;
 }
 
 void UI_Manager::createMeasureScreen() {
@@ -228,24 +240,14 @@ void UI_Manager::createMeasureScreen() {
   lv_obj_set_pos(_label_status, 300, 350);
 
   // BLANK button in left column
-  _btn_blank = lv_btn_create(_screen_measure);
-  lv_obj_set_size(_btn_blank, 240, 50);
-  lv_obj_set_pos(_btn_blank, 20, 60);
-  lv_obj_add_event_cb(_btn_blank, blank_btn_event_cb, LV_EVENT_CLICKED, nullptr);
+  _btn_blank = createButton(_screen_measure, "BLANK", 240, 50, blank_btn_event_cb, 20, 60);
 
-  lv_obj_t* label = lv_label_create(_btn_blank);
-  lv_label_set_text(label, "BLANK");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+  // MEASURE button in left column below BLANK (hidden initially)
+  _btn_measure = createButton(_screen_measure, "MEASURE", 240, 50, measure_btn_event_cb, 20, 120);
+  lv_obj_add_flag(_btn_measure, LV_OBJ_FLAG_HIDDEN); // Hide until blanked
 
-  // MENU button in left column below BLANK
-  _btn_menu = lv_btn_create(_screen_measure);
-  lv_obj_set_size(_btn_menu, 240, 50);
-  lv_obj_set_pos(_btn_menu, 20, 120);
-  lv_obj_add_event_cb(_btn_menu, menu_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_menu);
-  lv_label_set_text(label, "MENU");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+  // MENU button in left column below MEASURE
+  _btn_menu = createButton(_screen_measure, "MENU", 240, 50, menu_btn_event_cb, 20, 180);
 }
 
 void UI_Manager::createMenuScreen() {
@@ -269,73 +271,28 @@ void UI_Manager::createMenuScreen() {
   int btn_height = 50;
 
   // Absorbance button
-  _btn_absorbance = lv_btn_create(scroll_container);
-  lv_obj_set_size(_btn_absorbance, btn_width, btn_height);
-  lv_obj_add_event_cb(_btn_absorbance, absorbance_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  lv_obj_t* label = lv_label_create(_btn_absorbance);
-  lv_label_set_text(label, "Absorbance");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+  _btn_absorbance = createButton(scroll_container, "Absorbance", btn_width, btn_height, absorbance_btn_event_cb);
 
   // Transmittance button
-  _btn_transmittance = lv_btn_create(scroll_container);
-  lv_obj_set_size(_btn_transmittance, btn_width, btn_height);
-  lv_obj_add_event_cb(_btn_transmittance, transmittance_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_transmittance);
-  lv_label_set_text(label, "Transmittance");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+  _btn_transmittance = createButton(scroll_container, "Transmittance", btn_width, btn_height, transmittance_btn_event_cb);
 
   // Raw Sensor button
-  _btn_raw = lv_btn_create(scroll_container);
-  lv_obj_set_size(_btn_raw, btn_width, btn_height);
-  lv_obj_add_event_cb(_btn_raw, raw_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_raw);
-  lv_label_set_text(label, "Raw Sensor");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+  _btn_raw = createButton(scroll_container, "Raw Sensor", btn_width, btn_height, raw_btn_event_cb);
 
   // Add calibration buttons dynamically
   if (_calibrations != nullptr) {
     std::vector<String> calNames = _calibrations->getNames();
     for (const String& calName : calNames) {
-      lv_obj_t* btn = lv_btn_create(scroll_container);
-      lv_obj_set_size(btn, btn_width, btn_height);
-      lv_obj_add_event_cb(btn, calibration_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-      label = lv_label_create(btn);
-      lv_label_set_text(label, calName.c_str());
-      lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+      createButton(scroll_container, calName.c_str(), btn_width, btn_height, calibration_btn_event_cb);
     }
   }
 
-  // Motors button
-  _btn_motors = lv_btn_create(scroll_container);
-  lv_obj_set_size(_btn_motors, btn_width, btn_height);
-  lv_obj_add_event_cb(_btn_motors, motors_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_motors);
-  lv_label_set_text(label, "Motors");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
-
   // Calibrate button
-  lv_obj_t* _btn_calibrate = lv_btn_create(scroll_container);
-  lv_obj_set_size(_btn_calibrate, btn_width, btn_height);
-  lv_obj_add_event_cb(_btn_calibrate, calibrate_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_calibrate);
-  lv_label_set_text(label, "Calibrate");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+  createButton(scroll_container, "Calibrate", btn_width, btn_height, calibrate_btn_event_cb);
 
   // BACK button at bottom (fixed, outside scroll area)
-  _btn_back = lv_btn_create(_screen_menu);
-  lv_obj_set_size(_btn_back, btn_width, btn_height);
+  _btn_back = createButton(_screen_menu, "BACK", btn_width, btn_height, back_btn_event_cb);
   lv_obj_align(_btn_back, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-  lv_obj_add_event_cb(_btn_back, back_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_back);
-  lv_label_set_text(label, "BACK");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
 }
 
 void UI_Manager::createMessageScreen() {
@@ -375,47 +332,29 @@ void UI_Manager::createCalibrateScreen() {
   if (_calibrations != nullptr) {
     std::vector<String> calNames = _calibrations->getNames();
     for (const String& calName : calNames) {
-      lv_obj_t* btn = lv_btn_create(_cal_scroll_container);
-      lv_obj_set_size(btn, 720, 45);  // Reduced from 60 to 45
-      lv_obj_add_event_cb(btn, calibration_select_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-      lv_obj_t* label = lv_label_create(btn);
-      lv_label_set_text(label, calName.c_str());
-      lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
+      createButton(_cal_scroll_container, calName.c_str(), 720, 45, calibration_select_btn_event_cb);
     }
   }
 
-  // BLANK button (hidden initially)
-  _btn_cal_blank = lv_btn_create(_screen_calibrate);
-  lv_obj_set_size(_btn_cal_blank, 300, 80);
+  // BLANK button (hidden initially) - needs centered label
+  _btn_cal_blank = createButton(_screen_calibrate, "BLANK", 300, 80, cal_blank_btn_event_cb);
   lv_obj_align(_btn_cal_blank, LV_ALIGN_CENTER, -160, 100);
-  lv_obj_add_event_cb(_btn_cal_blank, cal_blank_btn_event_cb, LV_EVENT_CLICKED, nullptr);
   lv_obj_add_flag(_btn_cal_blank, LV_OBJ_FLAG_HIDDEN);
-
-  lv_obj_t* label = lv_label_create(_btn_cal_blank);
-  lv_label_set_text(label, "BLANK");
+  // Re-center the label
+  lv_obj_t* label = lv_obj_get_child(_btn_cal_blank, 0);
   lv_obj_center(label);
 
-  // MEASURE button (hidden initially)
-  _btn_cal_measure = lv_btn_create(_screen_calibrate);
-  lv_obj_set_size(_btn_cal_measure, 300, 80);
+  // MEASURE button (hidden initially) - needs centered label
+  _btn_cal_measure = createButton(_screen_calibrate, "MEASURE", 300, 80, cal_measure_btn_event_cb);
   lv_obj_align(_btn_cal_measure, LV_ALIGN_CENTER, 160, 100);
-  lv_obj_add_event_cb(_btn_cal_measure, cal_measure_btn_event_cb, LV_EVENT_CLICKED, nullptr);
   lv_obj_add_flag(_btn_cal_measure, LV_OBJ_FLAG_HIDDEN);
-
-  label = lv_label_create(_btn_cal_measure);
-  lv_label_set_text(label, "MEASURE");
+  // Re-center the label
+  label = lv_obj_get_child(_btn_cal_measure, 0);
   lv_obj_center(label);
 
   // BACK button at bottom
-  _btn_cal_back = lv_btn_create(_screen_calibrate);
-  lv_obj_set_size(_btn_cal_back, 240, 50);
+  _btn_cal_back = createButton(_screen_calibrate, "BACK", 240, 50, back_btn_event_cb);
   lv_obj_align(_btn_cal_back, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-  lv_obj_add_event_cb(_btn_cal_back, back_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_cal_back);
-  lv_label_set_text(label, "BACK");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
 }
 
 void UI_Manager::showMeasureScreen() {
@@ -426,28 +365,6 @@ void UI_Manager::showMeasureScreen() {
 void UI_Manager::showMenuScreen() {
   _currentScreen = SCREEN_MENU;
   lv_scr_load(_screen_menu);
-}
-
-void UI_Manager::showMotorSelectScreen() {
-  _currentScreen = SCREEN_MOTOR_SELECT;
-  lv_scr_load(_screen_motor_select);
-}
-
-void UI_Manager::showMotorControlScreen(int motorNum) {
-  _currentMotorNum = motorNum;
-  _currentScreen = SCREEN_MOTOR_CONTROL;
-
-  // Update motor title
-  char title[32];
-  snprintf(title, sizeof(title), "Motor %d Control", motorNum);
-  lv_label_set_text(_label_motor_title, title);
-
-  lv_scr_load(_screen_motor_control);
-}
-
-void UI_Manager::showSolenoidScreen(int solenoidNum) {
-  _currentScreen = SCREEN_SOLENOID;
-  // TODO: Implement solenoid screen
 }
 
 void UI_Manager::showSettingsScreen() {
@@ -481,9 +398,14 @@ void UI_Manager::showCalibrateScreen() {
   lv_scr_load(_screen_calibrate);
 }
 
-void UI_Manager::setMeasurementValue(float value, bool blanked) {
+void UI_Manager::setMeasurementValue(float value, float raw, bool blanked) {
   _measurementValue = value;
-  _isBlanked = blanked;
+  _rawValue = raw;
+  Serial.print("UI updated: value=");
+  Serial.print(value);
+  Serial.print(" raw=");
+  Serial.println(raw);
+  // Note: blanked parameter is ignored - we use global isBlanked instead
 }
 
 void UI_Manager::setMeasurementName(const char* name) {
@@ -502,7 +424,7 @@ void UI_Manager::setSensorStatus(bool initialized) {
 }
 
 void UI_Manager::showOverflow() {
-  setMeasurementValue(99.99, _isBlanked);
+  setMeasurementValue(99.99, 65535, _isBlanked);
 }
 
 // Touch input driver for LVGL (v9 API)
@@ -530,6 +452,80 @@ void UI_Manager::handleBlankButton() {
   blankRequested = true;
 }
 
+void UI_Manager::handleMeasureButton() {
+  Serial.println("MEASURE button pressed via LVGL");
+
+  // Check if sensor is initialized
+  if (!_sensorInitialized) {
+    Serial.println("ERROR: Cannot measure - sensor not initialized!");
+    return;
+  }
+
+  // Validate blank value
+  if (blankValue < MIN_BLANK_VALUE) {
+    Serial.println("ERROR: Invalid blank value!");
+    showMessage("Error", "Invalid blank - please re-blank");
+    delay(1500);
+    showMeasureScreen();
+    return;
+  }
+
+  // Take measurement using standard procedure
+  float raw = takeSensorMeasurement();
+
+  if (raw < 0.0) {
+    // Error occurred (logged by takeSensorMeasurement)
+    showMessage("Measure Failed", "Sensor error - check serial");
+    delay(1500);
+    showMeasureScreen();
+    return;
+  }
+
+  // Calculate value based on current measurement type
+  float value = 0.0;
+
+  if (currentMeasurement == "Raw Sensor") {
+    value = raw;
+  }
+  else if (currentMeasurement == "Transmittance") {
+    value = raw / blankValue;
+  }
+  else if (currentMeasurement == "Absorbance") {
+    float transmittance = raw / blankValue;
+    value = -log10(transmittance);
+    if (value < 0.0) value = 0.0;
+
+    Serial.print("Measurement: raw=");
+    Serial.print(raw);
+    Serial.print(" blank=");
+    Serial.print(blankValue);
+    Serial.print(" trans=");
+    Serial.print(transmittance);
+    Serial.print(" abs=");
+    Serial.println(value);
+  }
+  else {
+    // Check if it's a calibration
+    float transmittance = raw / blankValue;
+    float absorbance = -log10(transmittance);
+    if (absorbance < 0.0) absorbance = 0.0;
+
+    if (_calibrations != nullptr) {
+      value = _calibrations->apply(currentMeasurement, absorbance);
+
+      Serial.print("Calibration measurement: ");
+      Serial.print(currentMeasurement);
+      Serial.print(" abs=");
+      Serial.print(absorbance);
+      Serial.print(" value=");
+      Serial.println(value);
+    }
+  }
+
+  // Update display with new measurement
+  setMeasurementValue(value, raw, isBlanked);
+}
+
 void UI_Manager::handleMenuButton() {
   Serial.println("MENU button pressed via LVGL");
   showMenuScreen();
@@ -543,12 +539,6 @@ void UI_Manager::handleBackButton() {
     case SCREEN_MENU:
       showMeasureScreen();
       break;
-    case SCREEN_MOTOR_SELECT:
-      showMenuScreen();
-      break;
-    case SCREEN_MOTOR_CONTROL:
-      showMotorSelectScreen();
-      break;
     default:
       showMeasureScreen();
       break;
@@ -558,10 +548,17 @@ void UI_Manager::handleBackButton() {
 void UI_Manager::handleMeasurementSelect(const char* measurement) {
   Serial.print("Measurement selected: ");
   Serial.println(measurement);
+
+  // Reset blank status when changing measurements
+  if (currentMeasurement != String(measurement)) {
+    isBlanked = false;
+    _measurementValue = 0.0;
+  }
+
   currentMeasurement = String(measurement);
   setMeasurementName(measurement);
 
-  // Set units based on measurement type
+  // Set units and apply per-calibration settings
   if (_calibrations != nullptr && _calibrations->hasCalibration(measurement)) {
     String units = _calibrations->getUnits(measurement);
     Serial.print("Units for ");
@@ -569,145 +566,36 @@ void UI_Manager::handleMeasurementSelect(const char* measurement) {
     Serial.print(": ");
     Serial.println(units);
     setMeasurementUnits(units.c_str());
+
+    // Apply per-calibration gain setting
+    int calibrationGain = _calibrations->getGain(measurement);
+    TSL2591_Gain gainSetting;
+    if (calibrationGain == 1) gainSetting = TSL2591_GAIN_LOW;
+    else if (calibrationGain == 25) gainSetting = TSL2591_GAIN_MED;
+    else if (calibrationGain == 428) gainSetting = TSL2591_GAIN_HIGH;
+    else if (calibrationGain == 9876) gainSetting = TSL2591_GAIN_MAX;
+    else gainSetting = TSL2591_GAIN_LOW;
+
+    Serial.print("Applying gain for ");
+    Serial.print(measurement);
+    Serial.print(": ");
+    Serial.print(calibrationGain);
+    Serial.println("x");
+    lightSensor.setGain(gainSetting);
+
+    // Apply per-calibration integration time setting
+    String integrationTimeStr = _calibrations->getIntegrationTime(measurement);
+    TSL2591_IntegrationTime integrationTime = config.parseIntegrationTime(integrationTimeStr);
+    Serial.print("Applying integration time for ");
+    Serial.print(measurement);
+    Serial.print(": ");
+    Serial.println(integrationTimeStr);
+    lightSensor.setIntegrationTime(integrationTime);
   } else {
     setMeasurementUnits("");
   }
 
   showMeasureScreen();
-}
-
-void UI_Manager::handleMotorsButton() {
-  Serial.println("MOTORS button pressed via LVGL");
-  showMotorSelectScreen();
-}
-
-void UI_Manager::handleMotorSelect(int motorNum) {
-  Serial.print("Motor ");
-  Serial.print(motorNum);
-  Serial.println(" selected");
-  showMotorControlScreen(motorNum);
-}
-
-void UI_Manager::handleMotorForward(int motorNum) {
-  Serial.print("Motor ");
-  Serial.print(motorNum);
-  Serial.println(" FORWARD");
-  if (_motorController != nullptr) {
-    _motorController->runForward(motorNum, 0.5);
-  }
-}
-
-void UI_Manager::handleMotorReverse(int motorNum) {
-  Serial.print("Motor ");
-  Serial.print(motorNum);
-  Serial.println(" REVERSE");
-  if (_motorController != nullptr) {
-    _motorController->runReverse(motorNum, 0.5);
-  }
-}
-
-void UI_Manager::handleMotorStop(int motorNum) {
-  Serial.print("Motor ");
-  Serial.print(motorNum);
-  Serial.println(" STOP");
-  if (_motorController != nullptr) {
-    _motorController->stop(motorNum);
-  }
-}
-
-void UI_Manager::createMotorSelectScreen() {
-  _screen_motor_select = lv_obj_create(nullptr);
-
-  // Title in left column
-  lv_obj_t* title = lv_label_create(_screen_motor_select);
-  lv_label_set_text(title, "Select Motor");
-  lv_obj_set_pos(title, 20, 20);
-
-  int x = 20;
-  int y = 60;
-  int btn_width = 240;
-  int btn_height = 50;
-  int spacing = 10;
-
-  // Motor 1 button
-  _btn_motor1 = lv_btn_create(_screen_motor_select);
-  lv_obj_set_size(_btn_motor1, btn_width, btn_height);
-  lv_obj_set_pos(_btn_motor1, x, y);
-  lv_obj_add_event_cb(_btn_motor1, motor1_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  lv_obj_t* label = lv_label_create(_btn_motor1);
-  lv_label_set_text(label, "Motor 1");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
-  y += btn_height + spacing;
-
-  // Motor 2 button
-  _btn_motor2 = lv_btn_create(_screen_motor_select);
-  lv_obj_set_size(_btn_motor2, btn_width, btn_height);
-  lv_obj_set_pos(_btn_motor2, x, y);
-  lv_obj_add_event_cb(_btn_motor2, motor2_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_motor2);
-  lv_label_set_text(label, "Motor 2");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
-
-  // BACK button at bottom left
-  _btn_motor_back = lv_btn_create(_screen_motor_select);
-  lv_obj_set_size(_btn_motor_back, btn_width, btn_height);
-  lv_obj_align(_btn_motor_back, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-  lv_obj_add_event_cb(_btn_motor_back, back_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_motor_back);
-  lv_label_set_text(label, "BACK");
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 10, 0);
-}
-
-void UI_Manager::createMotorControlScreen() {
-  _screen_motor_control = lv_obj_create(nullptr);
-
-  // Title
-  _label_motor_title = lv_label_create(_screen_motor_control);
-  lv_label_set_text(_label_motor_title, "Motor 1 Control");
-  lv_obj_align(_label_motor_title, LV_ALIGN_TOP_MID, 0, 20);
-
-  // FORWARD button
-  _btn_motor_forward = lv_btn_create(_screen_motor_control);
-  lv_obj_set_size(_btn_motor_forward, 300, 80);
-  lv_obj_align(_btn_motor_forward, LV_ALIGN_CENTER, 0, -100);
-  lv_obj_add_event_cb(_btn_motor_forward, motor_forward_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  lv_obj_t* label = lv_label_create(_btn_motor_forward);
-  lv_label_set_text(label, "FORWARD");
-  lv_obj_center(label);
-
-  // STOP button
-  _btn_motor_stop = lv_btn_create(_screen_motor_control);
-  lv_obj_set_size(_btn_motor_stop, 300, 80);
-  lv_obj_align(_btn_motor_stop, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_add_event_cb(_btn_motor_stop, motor_stop_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_motor_stop);
-  lv_label_set_text(label, "STOP");
-  lv_obj_center(label);
-
-  // REVERSE button
-  _btn_motor_reverse = lv_btn_create(_screen_motor_control);
-  lv_obj_set_size(_btn_motor_reverse, 300, 80);
-  lv_obj_align(_btn_motor_reverse, LV_ALIGN_CENTER, 0, 100);
-  lv_obj_add_event_cb(_btn_motor_reverse, motor_reverse_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_motor_reverse);
-  lv_label_set_text(label, "REVERSE");
-  lv_obj_center(label);
-
-  // BACK button
-  _btn_motor_control_back = lv_btn_create(_screen_motor_control);
-  lv_obj_set_size(_btn_motor_control_back, 200, 60);
-  lv_obj_align(_btn_motor_control_back, LV_ALIGN_BOTTOM_LEFT, 50, -20);
-  lv_obj_add_event_cb(_btn_motor_control_back, back_btn_event_cb, LV_EVENT_CLICKED, nullptr);
-
-  label = lv_label_create(_btn_motor_control_back);
-  lv_label_set_text(label, "BACK");
-  lv_obj_center(label);
 }
 
 // Calibration handlers
@@ -720,12 +608,17 @@ void UI_Manager::handleCalibrationSelect(const char* calibrationName) {
   Serial.print("Calibration selected: ");
   Serial.println(calibrationName);
 
+  // Reset blank status when changing calibrations
+  if (_currentCalibrationName != String(calibrationName)) {
+    _calBlanked = false;
+  }
+
   _currentCalibrationName = String(calibrationName);
-  _calBlanked = false;
+  _lastCalMeasureTime = 0;  // Reset debounce timer for new calibration
 
   // Update instructions for blank step
   char instruction[128];
-  snprintf(instruction, sizeof(instruction), "Step 1: Insert reagent blank\nPress BLANK when ready");
+  snprintf(instruction, sizeof(instruction), "Step 1: Insert plain water\n(no reagent)\nPress BLANK when ready");
   lv_label_set_text(_label_cal_instructions, instruction);
 
   // Hide selection buttons, show BLANK button
@@ -740,22 +633,68 @@ void UI_Manager::handleCalibrationBlank() {
   // Show progress
   lv_label_set_text(_label_cal_instructions, "Blanking...\nPlease wait...");
 
-  // Perform blank directly (same as performBlank() in main sketch)
-  float sum = 0.0;
-  for (int i = 0; i < NUM_BLANK_SAMPLES; i++) {
-    sum += lightSensor.getValue();
-    lv_timer_handler(); // Keep UI responsive
-    delay(BLANK_DT);
+  // Set current measurement to this calibration so performBlank uses correct gain
+  currentMeasurement = _currentCalibrationName;
+
+  // Set gain for this calibration
+  if (_calibrations != nullptr) {
+    int calibrationGain = _calibrations->getGain(_currentCalibrationName);
+    if (calibrationGain == 1) currentGain = TSL2591_GAIN_LOW;
+    else if (calibrationGain == 25) currentGain = TSL2591_GAIN_MED;
+    else if (calibrationGain == 428) currentGain = TSL2591_GAIN_HIGH;
+    else if (calibrationGain == 9876) currentGain = TSL2591_GAIN_MAX;
+    else currentGain = TSL2591_GAIN_LOW;
+
+    Serial.print("Setting gain for ");
+    Serial.print(_currentCalibrationName);
+    Serial.print(": ");
+    Serial.print(calibrationGain);
+    Serial.println("x");
+
+    // Apply per-calibration integration time setting
+    String integrationTimeStr = _calibrations->getIntegrationTime(_currentCalibrationName);
+    TSL2591_IntegrationTime integrationTime = config.parseIntegrationTime(integrationTimeStr);
+    Serial.print("Setting integration time for ");
+    Serial.print(_currentCalibrationName);
+    Serial.print(": ");
+    Serial.println(integrationTimeStr);
+    lightSensor.setIntegrationTime(integrationTime);
   }
 
-  blankValue = sum / NUM_BLANK_SAMPLES;
+  // Use standard measurement procedure
+  blankValue = takeSensorMeasurement();
+
+  if (blankValue < 0.0) {
+    lv_label_set_text(_label_cal_instructions, "ERROR: Blank failed!\nCheck serial output\nPress BACK to retry");
+    isBlanked = false;
+    _calBlanked = false;
+    blankValue = 1.0;
+    return;
+  }
+
+  Serial.print("Calibration blank median from ");
+  Serial.print(NUM_BLANK_SAMPLES);
+  Serial.print(" samples: ");
+  Serial.println(blankValue, 2);
+
+  // Validate blank value
+  if (blankValue < MIN_BLANK_VALUE) {
+    Serial.print("ERROR: Calibration blank value too low: ");
+    Serial.println(blankValue, 4);
+    lv_label_set_text(_label_cal_instructions, "ERROR: Blank value too low!\nCheck sensor");
+    isBlanked = false;
+    _calBlanked = false;
+    blankValue = 1.0;
+    return;
+  }
+
   isBlanked = true;
   _calBlanked = true;
 
   Serial.print("Blank value set to: ");
   Serial.println(blankValue, 4);
 
-  // Update instructions for measurement step
+  // Update instructions for standard measurement
   if (_calibrations == nullptr) return;
 
   float standard = _calibrations->getStandard(_currentCalibrationName);
@@ -772,6 +711,14 @@ void UI_Manager::handleCalibrationBlank() {
 }
 
 void UI_Manager::handleCalibrationMeasure() {
+  // Debounce: Ignore button presses within 15 seconds of last calibration measurement
+  unsigned long now = millis();
+  if (now - _lastCalMeasureTime < 15000) {
+    Serial.println("Calibration measure button debounced (too soon after last measurement)");
+    return;
+  }
+  _lastCalMeasureTime = now;
+
   if (!_calBlanked) {
     lv_label_set_text(_label_cal_instructions, "ERROR: Please blank first!");
     Serial.println("Error: Blank first!");
@@ -781,6 +728,13 @@ void UI_Manager::handleCalibrationMeasure() {
   if (_calibrations == nullptr) {
     lv_label_set_text(_label_cal_instructions, "ERROR: No calibrations available");
     Serial.println("Error: No calibrations");
+    return;
+  }
+
+  // Validate blank value
+  if (blankValue < MIN_BLANK_VALUE) {
+    lv_label_set_text(_label_cal_instructions, "ERROR: Invalid blank value!\nPlease re-blank");
+    Serial.println("Error: Invalid blank value");
     return;
   }
 
@@ -795,20 +749,19 @@ void UI_Manager::handleCalibrationMeasure() {
   // Show measuring status
   lv_label_set_text(_label_cal_instructions, "Measuring standard...\nPlease wait...");
 
-  // Take multiple readings and average (same as blank)
-  float sum = 0.0;
-  for (int i = 0; i < NUM_BLANK_SAMPLES; i++) {
-    sum += lightSensor.getValue();
-    lv_timer_handler(); // Keep UI responsive
-    delay(BLANK_DT);
+  // Take measurement using standard procedure
+  float raw = takeSensorMeasurement();
+
+  if (raw < 0.0) {
+    lv_label_set_text(_label_cal_instructions, "ERROR: Measurement failed!\nCheck serial output\nPress BACK to retry");
+    return;
   }
-  float raw = sum / NUM_BLANK_SAMPLES;
 
   float transmittance = raw / blankValue;
   float absorbance = -log10(transmittance);
   if (absorbance < 0.0) absorbance = 0.0;
 
-  Serial.print("Calibration measurement (averaged): raw=");
+  Serial.print("Standard measurement: raw=");
   Serial.print(raw);
   Serial.print(" blank=");
   Serial.print(blankValue);
@@ -817,21 +770,32 @@ void UI_Manager::handleCalibrationMeasure() {
   Serial.print(" abs=");
   Serial.println(absorbance);
 
-  // Calculate new coefficient: standard / absorbance
-  if (absorbance > 0.001) {
-    float newCoefficient = standard / absorbance;
+  // Calculate calibration coefficients
+  // Point 1: (0, 0) - water blank
+  // Point 2: (absorbance, standard) - standard measurement
+  if (absorbance > MIN_ABSORBANCE_THRESHOLD) {
+    float slope = (standard - 0.0) / (absorbance - 0.0);
+    float intercept = 0.0 - (slope * 0.0);
 
-    Serial.print("Updating coefficient to: ");
-    Serial.println(newCoefficient);
+    Serial.print("Calculating calibration:\n");
+    Serial.print("  Point 1: abs=0, conc=0 (water blank)\n");
+    Serial.print("  Point 2: abs=");
+    Serial.print(absorbance, 4);
+    Serial.print(", conc=");
+    Serial.println(standard);
+    Serial.print("  Slope: ");
+    Serial.println(slope, 4);
+    Serial.print("  Intercept: ");
+    Serial.println(intercept, 4);
 
     // Update the calibration
-    _calibrations->updateCoefficient(_currentCalibrationName, newCoefficient);
+    _calibrations->updateCoefficients(_currentCalibrationName, intercept, slope);
 
     // Show brief success message
-    char successMsg[200];
+    char successMsg[250];
     snprintf(successMsg, sizeof(successMsg),
-             "SUCCESS!\n\nCalibration: %s\nNew coefficient: %.2f\n\nReturning to menu...",
-             _currentCalibrationName.c_str(), newCoefficient);
+             "SUCCESS!\n\nCalibration: %s\nSlope: %.4f\n\nReturning to menu...",
+             _currentCalibrationName.c_str(), slope);
     lv_label_set_text(_label_cal_instructions, successMsg);
 
     // Wait briefly to show success message

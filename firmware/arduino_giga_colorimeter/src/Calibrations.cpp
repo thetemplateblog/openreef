@@ -10,11 +10,11 @@
 #include "SlicingBlockDevice.h"
 #include "LittleFileSystem.h"
 
-// QSPI flash and filesystem instances
+// QSPI flash and filesystem instances (shared with Configuration)
 static QSPIFBlockDevice* qspi_bd = nullptr;
 static mbed::SlicingBlockDevice* cal_data = nullptr;
-static mbed::LittleFileSystem* fs = nullptr;
-static bool fs_mounted = false;
+mbed::LittleFileSystem* fs = nullptr;
+bool fs_mounted = false;
 
 // Use last 1MB of QSPI flash for calibration data (starts at 15MB)
 #define CAL_STORAGE_OFFSET (15 * 1024 * 1024)
@@ -26,10 +26,6 @@ Calibrations::Calibrations() {
 }
 
 bool Calibrations::load() {
-  // Load built-in calibrations
-  Serial.println("Loading built-in calibrations");
-  loadBuiltInCalibrations();
-
   // Initialize QSPI flash filesystem on first call
   if (!fs_mounted) {
     Serial.println("Initializing persistent storage on QSPI flash...");
@@ -109,37 +105,42 @@ bool Calibrations::load() {
     }
   }
 
-  // Try to load saved coefficients from LittleFS
+  // Clean up old calibrations.json file if it exists (one-time cleanup)
   if (fs_mounted) {
-    Serial.println("Loading saved coefficients from LittleFS...");
-    Serial.println("Checking storage for each calibration:");
+    if (remove("/fs/calibrations.json") == 0) {
+      Serial.println("Cleaned up old /fs/calibrations.json");
+    }
+  }
+
+  // Load built-in calibrations
+  Serial.println("Loading built-in calibrations");
+  loadBuiltInCalibrations();
+
+  // Try to load saved coefficient overrides from LittleFS
+  if (fs_mounted && _calibrations.size() > 0) {
+    Serial.println("Checking for saved coefficient overrides...");
     int loaded_count = 0;
     for (auto& kv : _calibrations) {
-      Serial.print("  ");
-      Serial.print(kv.first);
-      Serial.print(" ... ");
-
-      float saved_coefficient;
-      if (loadCoefficient(kv.first, saved_coefficient)) {
+      float saved_intercept, saved_slope;
+      if (loadCoefficients(kv.first, saved_intercept, saved_slope)) {
         if (kv.second.fitCoef.size() >= 2) {
-          kv.second.fitCoef[1] = saved_coefficient;
-          Serial.print("FOUND: ");
-          Serial.println(saved_coefficient, 4);
+          kv.second.fitCoef[0] = saved_intercept;
+          kv.second.fitCoef[1] = saved_slope;
+          Serial.print("  ");
+          Serial.print(kv.first);
+          Serial.print(" coefficients: intercept=");
+          Serial.print(saved_intercept, 4);
+          Serial.print(", slope=");
+          Serial.println(saved_slope, 4);
           loaded_count++;
         }
-      } else {
-        Serial.println("NOT FOUND");
       }
     }
     if (loaded_count > 0) {
-      Serial.print("Successfully loaded ");
+      Serial.print("Applied ");
       Serial.print(loaded_count);
-      Serial.println(" saved calibration(s) from QSPI flash");
-    } else {
-      Serial.println("No saved calibrations found in QSPI flash");
+      Serial.println(" coefficient override(s)");
     }
-  } else {
-    Serial.println("LittleFS not mounted - calibrations will be in RAM only");
   }
 
   return true;
@@ -150,25 +151,28 @@ bool Calibrations::loadBuiltInCalibrations() {
   const char* builtInCalibrations = R"({
     "Phosphate Hanna": {
       "units": "ppm",
-      "led": "850",
+      "led": "880",
+      "gain": 25,
+      "integration_time": "100ms",
       "fit_type": "polynomial",
-      "fit_coef": [0.0, 18.30],
       "range": {"min": 0.0, "max": 0.50},
-      "standard": 0.307
+      "standard": 0.2882
     },
     "Nitrate API": {
       "units": "ppm",
       "led": "528",
+      "gain": 1,
+      "integration_time": "100ms",
       "fit_type": "polynomial",
-      "fit_coef": [0.32039213453320625, 34.032597696304, 0.0],
       "range": {"min": 0.0, "max": 10},
       "standard": 5.0
     },
     "Nitrite API": {
       "units": "ppm",
       "led": "528",
+      "gain": 1,
+      "integration_time": "100ms",
       "fit_type": "polynomial",
-      "fit_coef": [0.13111937060865314, 1.2591439203550079, 0.0],
       "range": {"min": 0.0, "max": 1.4},
       "standard": 0.5
     }
@@ -212,17 +216,26 @@ bool Calibrations::parseJSON(const char* jsonString) {
       cal.led = obj["led"].as<String>();
     }
 
+    if (obj.containsKey("gain")) {
+      cal.gain = obj["gain"].as<int>();
+    } else {
+      cal.gain = 1;  // Default to 1x gain if not specified
+    }
+
+    if (obj.containsKey("integration_time")) {
+      cal.integration_time = obj["integration_time"].as<String>();
+    } else {
+      cal.integration_time = "100ms";  // Default to 100ms if not specified
+    }
+
     if (obj.containsKey("fit_type")) {
       cal.fitType = obj["fit_type"].as<String>();
     }
 
-    // Parse coefficients
-    if (obj.containsKey("fit_coef")) {
-      JsonArray coefArray = obj["fit_coef"];
-      for (JsonVariant v : coefArray) {
-        cal.fitCoef.push_back(v.as<float>());
-      }
-    }
+    // Initialize fit_coef with default [0.0, 1.0]
+    // Real coefficients come from LittleFS only
+    cal.fitCoef.push_back(0.0);  // Intercept (always forced to 0)
+    cal.fitCoef.push_back(1.0);  // Default slope (will be overridden from LittleFS if exists)
 
     // Parse range
     if (obj.containsKey("range")) {
@@ -298,6 +311,20 @@ String Calibrations::getLED(String name) {
   return "";
 }
 
+int Calibrations::getGain(String name) {
+  if (hasCalibration(name)) {
+    return _calibrations[name].gain;
+  }
+  return 1;  // Default to 1x gain
+}
+
+String Calibrations::getIntegrationTime(String name) {
+  if (hasCalibration(name)) {
+    return _calibrations[name].integration_time;
+  }
+  return "100ms";  // Default to 100ms
+}
+
 int Calibrations::getCount() {
   return _calibrations.size();
 }
@@ -332,19 +359,22 @@ float Calibrations::getStandard(String name) {
   return 0.0;
 }
 
-void Calibrations::updateCoefficient(String name, float newCoefficient) {
+void Calibrations::updateCoefficients(String name, float intercept, float slope) {
   if (hasCalibration(name)) {
-    // For linear calibration: y = coef[0] + coef[1] * x
-    // Update the slope (coef[1])
+    // For linear calibration: y = intercept + slope * x
     if (_calibrations[name].fitCoef.size() >= 2) {
-      _calibrations[name].fitCoef[1] = newCoefficient;
-      Serial.print("Updated coefficient for ");
+      _calibrations[name].fitCoef[0] = intercept;
+      _calibrations[name].fitCoef[1] = slope;
+
+      Serial.print("Updated calibration for ");
       Serial.print(name);
-      Serial.print(" to: ");
-      Serial.println(newCoefficient);
+      Serial.print(": intercept=");
+      Serial.print(intercept, 4);
+      Serial.print(", slope=");
+      Serial.println(slope, 4);
 
       // Save to LittleFS
-      if (saveCoefficient(name, newCoefficient)) {
+      if (saveCoefficients(name, intercept, slope)) {
         Serial.println("Calibration saved to QSPI flash - will persist across uploads");
       } else {
         Serial.println("WARNING: Failed to save calibration to QSPI flash");
@@ -353,20 +383,27 @@ void Calibrations::updateCoefficient(String name, float newCoefficient) {
   }
 }
 
-bool Calibrations::saveCoefficient(String name, float coefficient) {
-  if (!fs_mounted) {
-    return false;
-  }
-
+String Calibrations::getCalibrationFilename(const String& name) {
   // Create filename (replace spaces with underscores)
   String filename = "/fs/cal_" + name;
   filename.replace(" ", "_");
   filename += ".dat";
+  return filename;
+}
+
+bool Calibrations::saveCoefficients(String name, float intercept, float slope) {
+  if (!fs_mounted) {
+    return false;
+  }
+
+  String filename = getCalibrationFilename(name);
 
   Serial.print("Saving to LittleFS: file='");
   Serial.print(filename);
-  Serial.print("', value=");
-  Serial.println(coefficient, 4);
+  Serial.print("', intercept=");
+  Serial.print(intercept, 4);
+  Serial.print(", slope=");
+  Serial.println(slope, 4);
 
   // Open file for writing
   FILE* file = fopen(filename.c_str(), "wb");
@@ -376,12 +413,13 @@ bool Calibrations::saveCoefficient(String name, float coefficient) {
     return false;
   }
 
-  // Write coefficient
-  size_t written = fwrite(&coefficient, sizeof(float), 1, file);
+  // Write both coefficients
+  float coeffs[2] = {intercept, slope};
+  size_t written = fwrite(coeffs, sizeof(float), 2, file);
   fclose(file);
 
-  if (written != 1) {
-    Serial.println("ERROR: Failed to write coefficient");
+  if (written != 2) {
+    Serial.println("ERROR: Failed to write coefficients");
     return false;
   }
 
@@ -389,15 +427,12 @@ bool Calibrations::saveCoefficient(String name, float coefficient) {
   return true;
 }
 
-bool Calibrations::loadCoefficient(String name, float& coefficient) {
+bool Calibrations::loadCoefficients(String name, float& intercept, float& slope) {
   if (!fs_mounted) {
     return false;
   }
 
-  // Create filename (replace spaces with underscores)
-  String filename = "/fs/cal_" + name;
-  filename.replace(" ", "_");
-  filename += ".dat";
+  String filename = getCalibrationFilename(name);
 
   // Open file for reading
   FILE* file = fopen(filename.c_str(), "rb");
@@ -405,13 +440,16 @@ bool Calibrations::loadCoefficient(String name, float& coefficient) {
     return false;  // File doesn't exist
   }
 
-  // Read coefficient
-  size_t read = fread(&coefficient, sizeof(float), 1, file);
+  // Read both coefficients
+  float coeffs[2];
+  size_t read = fread(coeffs, sizeof(float), 2, file);
   fclose(file);
 
-  if (read != 1) {
+  if (read != 2) {
     return false;
   }
 
+  intercept = coeffs[0];
+  slope = coeffs[1];
   return true;
 }

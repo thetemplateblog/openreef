@@ -1,0 +1,13 @@
+{
+  "sensor": {
+    "gain": "MED",
+    "integration_time": "500MS"
+  },
+  "motors": {
+    "i2c_address": "0x60"
+  },
+  "web": {
+    "host": "0.0.0.0",
+    "port": 5000
+  }
+}
