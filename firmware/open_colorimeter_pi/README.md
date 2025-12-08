@@ -1,4 +1,11 @@
-# Open Colorimeter - Raspberry Pi Web Version
+---
+layout: single
+title: "Open Colorimeter - Raspberry Pi Web Version"
+permalink: /firmware/open_colorimeter_pi/README/
+toc: true
+toc_label: "On This Page"
+toc_icon: "cog"
+---
 
 Web-based colorimeter using Raspberry Pi with CircuitPython (Blinka) for hardware control.
 
