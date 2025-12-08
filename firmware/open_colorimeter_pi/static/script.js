@@ -364,6 +364,53 @@ function loadSequence() {
     }
 }
 
+async function saveSequence() {
+    const select = document.getElementById('sequence-select');
+    const textarea = document.getElementById('sequence-input');
+    const selectedName = select.value;
+    const content = textarea.value.trim();
+
+    if (!selectedName) {
+        alert('Please select a sequence to update, or use "Save As..." to create a new one');
+        return;
+    }
+
+    if (!content) {
+        alert('Please enter some commands first');
+        return;
+    }
+
+    try {
+        // Parse commands
+        const commands = content.split('\n').map(line => line.trim()).filter(line => line !== '');
+
+        // Update the selected sequence
+        if (savedSequences[selectedName]) {
+            savedSequences[selectedName].commands = commands;
+        } else {
+            alert('Selected sequence not found');
+            return;
+        }
+
+        // Save sequences
+        const response = await fetch('/api/sequences/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: savedSequences })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error saving sequence: ' + data.error);
+        } else {
+            alert(`Sequence "${selectedName}" updated successfully!`);
+        }
+    } catch (error) {
+        alert('Error saving sequence: ' + error.message);
+    }
+}
+
 async function saveSequenceAs() {
     const textarea = document.getElementById('sequence-input');
     const content = textarea.value.trim();
