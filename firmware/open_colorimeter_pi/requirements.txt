@@ -1,6 +1,6 @@
 flask>=2.3.0
 adafruit-blinka
 adafruit-circuitpython-tsl2591
-adafruit-circuitpython-pca9685
-adafruit-circuitpython-motor
+adafruit-circuitpython-motorkit
+adafruit-circuitpython-mcp230xx
 numpy

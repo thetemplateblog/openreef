@@ -1,0 +1,60 @@
+{
+  "motors": {
+    "1": {
+      "name": "Sample",
+      "description": "Sample pump"
+    },
+    "2": {
+      "name": "Reagent",
+      "description": "Reagent pump"
+    },
+    "3": {
+      "name": "Motor 3",
+      "description": ""
+    },
+    "4": {
+      "name": "Motor 4",
+      "description": ""
+    }
+  },
+  "solenoids": {
+    "1": {
+      "name": "Solenoid 1",
+      "description": ""
+    },
+    "2": {
+      "name": "Solenoid 2",
+      "description": ""
+    },
+    "3": {
+      "name": "Solenoid 3",
+      "description": ""
+    },
+    "4": {
+      "name": "Solenoid 4",
+      "description": ""
+    },
+    "5": {
+      "name": "Solenoid 5",
+      "description": ""
+    },
+    "6": {
+      "name": "Solenoid 6",
+      "description": ""
+    },
+    "7": {
+      "name": "Solenoid 7",
+      "description": ""
+    },
+    "8": {
+      "name": "Solenoid 8",
+      "description": ""
+    }
+  },
+  "tests": {
+    "Phosphate": {
+      "sensor": 1,
+      "calibration": "Phosphate"
+    }
+  }
+}

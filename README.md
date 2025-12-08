@@ -1,85 +1,98 @@
 # OpenReef Automated System
 
-Open-source automated colorimetric water quality testing for phosphate and nitrate analysis.
+Open-source Raspberry Pi web-based colorimeter for water quality testing.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
-![CircuitPython](https://img.shields.io/badge/CircuitPython-8.x-blueviolet.svg)
+![Status](https://img.shields.io/badge/status-ready%20to%20build-green.svg)
+![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi-red.svg)
 
 ---
 
 ## Overview
 
-**OpenReef** is a fully automated, PyBadge-controlled platform for colorimetric water quality testing. The system automates the entire assay process from sample preparation through measurement and cleanup, providing accurate phosphate and nitrate measurements for Reef aquarium monitoring.
+**OpenReef** is an open-source Raspberry Pi-based colorimeter with web interface for automated water quality testing. Access measurements and controls from any device on your network. Perfect for reef aquariums, hydroponics, and environmental monitoring.
 
 ### Key Features
 
-- **Fully Automated**: Hands-off operation from sample to result
-- **Dual Assay Support**: Phosphate (625nm) and Nitrate (528nm) testing
-- **Precision Control**: Automated pumps, valves, and timing
-- **Open Source**: Complete hardware designs, firmware, and documentation
-- **Cost Effective**: ~$300 total build cost using off-the-shelf components
-- **PyBadge Display**: Interactive menu and real-time results
+- **Web-Based Control**: Access from phone, tablet, or computer on your network
+- **Remote Monitoring**: Check water quality from anywhere
+- **Automated Sequences**: Pre-programmed test protocols with motors, valves, and timers
+- **Real-Time Display**: Live sensor readings and interactive controls
+- **Multi-Channel**: Support for 4 motors and 8 solenoid valves
+- **Editable Calibrations**: Web-based JSON configuration
+- **Open Source**: Complete hardware designs, Python code, and documentation
+- **Cost Effective**: ~$200-250 build cost using Raspberry Pi and Adafruit components
 
 ---
 
 ## Quick Links
 
-- [All Tests](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
-- [Control Led](https://github.com/iorodeo/i_control_led/tree/main)
-- [Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
+### 📖 Documentation
 
-### Documentation
+- **[Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md)** - Complete setup instructions
+- **[Full Pi Documentation](firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
+- [Introduction & Overview](docs/introduction/overview.md) - System overview
 
-📖 **Getting Started**
-- [Introduction & System Overview](docs/introduction/overview.md)
-- [Quick Start Guide](docs/getting-started/quick-start.md)
+### 🧪 Assay Protocols
 
-🧪 **Assay Protocols**
 - [Phosphate Assay](docs/assays/phosphate.md) - 625nm colorimetric method
 - [Nitrate Assay](docs/assays/nitrate.md) - 528nm colorimetric method
+- [All Tests Database](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
 
-🔧 **Hardware**
-- [Parts List & BOM](docs/hardware/parts-list.md)
-- [Adafruit Specific Parts](docs/hardware/adafruit-parts-bom.md)
+### 🔧 Hardware
 
-💻 **Firmware**
-- [Automation Sequence](docs/firmware/automation-sequence.md)
+- [Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list
+- [Adafruit Components](docs/hardware/adafruit-parts-bom.md) - Motor HAT, sensors, driver
 
-📊 **Calibration**
-- [Calibration Guide](docs/calibration/calibration-guide.md)
+### 💻 Software
+
+- [Web Interface](firmware/open_colorimeter_pi/README.md) - Flask app documentation
+- [Calibration Guide](docs/calibration/calibration-guide.md) - Calibration procedures
+- [Configuration](firmware/open_colorimeter_pi/README.md#configuration) - Mappings, sequences, calibrations
+
+### 🔗 Related Projects
+
+- [Control Led](https://github.com/iorodeo/i_control_led/tree/main)
+- [Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
 
 ---
 
 ## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  PyBadge Controller                      │
-│  ┌──────────┐  ┌────────────┐  ┌──────────────────┐   │
-│  │ Display  │  │ AS7341     │  │  I2C Control     │   │
-│  │ & UI     │  │ Colorimeter│  │  (Pumps/Valves)  │   │
-│  └──────────┘  └────────────┘  └──────────────────┘   │
-└────────┬──────────────┬───────────────┬────────────────┘
-         │              │               │
-    User Interface  Measurement    Fluidics Control
-                         │               │
-                    ┌────▼────┐     ┌────▼─────────┐
-                    │ Cuvette │     │  Pumps (2x)  │
-                    │(bubbling│     │  Valves (3x) │
-                    └─────────┘     │  Reagents    │
-                                    └──────────────┘
+┌──────────────────────────────────────────┐
+│      Raspberry Pi + Flask Server         │
+│  ┌────────────┐  ┌──────────────────┐   │
+│  │  TSL2591   │  │  Motor HAT       │   │
+│  │  Sensor    │  │  Solenoid Driver │   │
+│  └────────────┘  └──────────────────┘   │
+└────────┬───────────────┬──────────────────┘
+         │               │
+    Measurement     Hardware Control
+         │               │
+         │          ┌────▼─────────┐
+         │          │  Motors (4×) │
+    ┌────▼────┐    │  Solenoids(8×)│
+    │ Cuvette │    │  Reagents    │
+    └─────────┘    └──────────────┘
+         ▲
+         │
+    ┌────┴────────────────┐
+    │   Web Browser UI    │
+    │  (Phone/Tablet/PC)  │
+    └─────────────────────┘
 ```
 
 ### Component Summary
 
 | Component | Function | Details |
 |-----------|----------|---------|
-| **PyBadge** | Main controller | ARM Cortex-M4, color display |
-| **AS7341** | Colorimeter | 11-channel spectral sensor |
-| **FeW Pump** | Water handling | Fill/empty cuvette, bubble mixing |
-| **FeR Pump** | Reagent dosing | Precise addition, bubble mixing |
-| **3× Valves** | Flow control | ReV, WtV, WaV solenoids |
+| **Raspberry Pi** | Main controller | Web server, automation, remote access |
+| **TSL2591** | Light sensor | Absorbance measurements (I2C) |
+| **Motor HAT** | Motor control | 4 DC motors for pumps/stirring |
+| **MCP23017** | Solenoid driver | 8-channel valve control (I2C) |
+| **Web UI** | User interface | Responsive Flask app, any device |
 
 ---
 
@@ -118,29 +131,50 @@ All steps fully automated. Total hands-off time: 10-12 minutes.
 
 ### 1. Hardware Assembly
 
-Refer to:
-- [Parts List](docs/hardware/parts-list.md) - Complete BOM
-- [Adafruit Parts](docs/hardware/adafruit-parts-bom.md) - Specific Adafruit components
+**Estimated Cost:** $200-250
 
-**Estimated Cost:** $280-350
+Components needed:
+- Raspberry Pi 3/4/5
+- Adafruit DC & Stepper Motor HAT
+- TSL2591 light sensor
+- MCP23017 solenoid driver (optional)
+- DC motors, solenoid valves, power supply
 
-### 2. Firmware Installation
+Detailed guides:
+- **[Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md)** - Complete parts list
+- **[Adafruit Components BOM](docs/hardware/adafruit-parts-bom.md)** - Specific part numbers
+
+### 2. Software Installation
+
+See **[Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md)** for complete instructions:
 
 ```bash
-# Coming soon - CircuitPython code
-# Will be in /firmware/ directory
+# Clone repository
+git clone https://github.com/thetemplateblog/openreef.git
+cd openreef/firmware/open_colorimeter_pi
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run automated service installer
+./install_service.sh
 ```
 
-### 3. Calibration
+Access web interface at: `http://raspberrypi.local:5000`
 
-Follow the [Calibration Guide](docs/calibration/calibration-guide.md):
-- Prepare phosphate/nitrate standards
-- Run automated calibration wizard
-- Calibrate pump flow rates
+### 3. Configuration & Calibration
+
+- Edit device names in web Config tab (mappings.json)
+- Create command sequences for automation
+- Set up calibration curves
+- Follow [Calibration Guide](docs/calibration/calibration-guide.md)
 
 ### 4. Run Your First Test
 
-See [Quick Start Guide](docs/getting-started/quick-start.md)
+- Access web interface from any device
+- Use Sequences tab to create automated protocols
+- Monitor real-time measurements
+- Save and load test configurations
 
 ---
 
@@ -153,19 +187,22 @@ openreef/
 │   ├── introduction/
 │   │   └── overview.md
 │   ├── getting-started/
-│   │   └── quick-start.md
+│   │   └── raspberry-pi-setup.md
 │   ├── assays/
 │   │   ├── phosphate.md
 │   │   └── nitrate.md
 │   ├── hardware/
-│   │   ├── parts-list.md
+│   │   ├── raspberry-pi.md
 │   │   └── adafruit-parts-bom.md
-│   ├── firmware/
-│   │   └── automation-sequence.md
 │   └── calibration/
 │       └── calibration-guide.md
 ├── firmware/
-│   └── (CircuitPython code - coming soon)
+│   └── open_colorimeter_pi/
+│       ├── README.md (complete Pi guide)
+│       ├── app.py (Flask web server)
+│       ├── colorimeter.py (hardware control)
+│       ├── templates/ (web UI)
+│       └── static/ (CSS, JavaScript)
 └── hardware/
     └── (CAD files, schematics - coming soon)
 ```
@@ -236,71 +273,79 @@ Chemistry and instrumentation demonstrations:
 
 ### Electronics
 
-- **Controller**: AdaFruit PyBadge (ATSAMD51J19)
-- **Sensor**: AS7341 11-channel spectral sensor
-- **Motor Control**: DC Motor + Stepper FeatherWing (PID 3243)
-- **Valve Control**: I2C 8-Channel Solenoid Driver (PID 6318)
-- **Valves**: 6V Air Valves (PID 4663) × 3
-- **Pumps**: Peristaltic pumps × 2 (aftermarket)
+- **Controller**: Raspberry Pi 3/4/5
+- **Sensor**: TSL2591 light sensor (I2C address 0x29)
+- **Motor Control**: Adafruit DC & Stepper Motor HAT (I2C address 0x60)
+- **Valve Control**: Adafruit I2C 8-Channel Solenoid Driver MCP23017 (I2C address 0x20)
+- **Motors**: 4× DC motors (4.5-13.5V, <1.2A)
+- **Solenoids**: 8× 12V solenoid valves (optional)
 
 ### Fluidics
 
-- **Tubing**: 3mm ID silicone (PID 4661)
-- **Cuvette**: 1 cm path length, 3.5 mL volume
-- **Reservoirs**: RO water, test water, waste, reagents × 2
+- **Tubing**: 3mm ID silicone
+- **Cuvette**: 1 cm path length for colorimetric measurements
+- **Reservoirs**: RO water, test water, waste, reagents
 
 ### Power
 
-- **Main Power**: 12V DC, 2-3A
-- **PyBadge**: USB-C or battery
+- **Motor Power**: 12V DC, 2-3A (green terminal on Motor HAT)
+- **Raspberry Pi**: 5V USB-C (separate from motor power)
 - **Consumption**: ~15W during operation
 
 ---
 
 ## Software
 
-### Firmware
+### Web Interface
 
-- **Language**: CircuitPython 8.x
-- **Platform**: AdaFruit PyBadge
+- **Language**: Python 3.x
+- **Framework**: Flask (web server)
+- **Platform**: Raspberry Pi (Raspberry Pi OS or Ubuntu Server)
 - **Libraries**:
-  - `adafruit_as7341` - Colorimeter
-  - `adafruit_motor` - Pump control
-  - `adafruit_seesaw` - I2C motor driver
+  - `adafruit-circuitpython-tsl2591` - Light sensor
+  - `adafruit-circuitpython-motorkit` - Motor HAT control
+  - `adafruit-circuitpython-mcp230xx` - Solenoid driver
+  - `flask` - Web server
+  - `numpy` - Data processing
 
 ### Features
 
-- Automated assay sequences
-- Real-time display and countdown
-- Calibration wizard
-- Data logging (CSV to SD card)
-- QC tracking
-- System diagnostics
+- **Web-Based Interface**: Access from any device on network
+- **Real-Time Measurements**: Live sensor data display
+- **Automated Sequences**: Command-based automation (motors, valves, waits, blanking, measurements)
+- **Editable Configurations**: Web-based JSON editors for mappings, sequences, and calibrations
+- **Multi-Tab UI**: Measure, Motors, Solenoids, Sequences, Calibrations, Config
+- **Auto-Start Service**: Systemd service for boot automation
+- **Remote Access**: Network-accessible from phone, tablet, or computer
 
 ---
 
 ## Project Status
 
-🚧 **In Development**
+✅ **Raspberry Pi Version - Ready to Build!**
 
 ### Completed
-- ✅ System architecture design
-- ✅ Hardware component selection
+- ✅ Raspberry Pi web interface (Flask)
+- ✅ Hardware control (motors, solenoids, sensor)
+- ✅ Automated command sequences
+- ✅ Web-based configuration editors
+- ✅ Calibration system
+- ✅ Real-time measurements and display
+- ✅ Systemd service automation
+- ✅ Comprehensive documentation
 - ✅ Assay protocol documentation
-- ✅ Automation sequence design
 
 ### In Progress
 - 🔨 CAD designs (3D printable enclosure and mounts)
-- 🔨 Calibration procedures documentation
-- 🔨 CircuitPython firmware development
-- 🔨 Hardware assembly guide
-- 🔨 PCB design (optional)
+- 🔨 Hardware assembly guide with photos
+- 🔨 Assay-specific calibration protocols
+- 🔨 PCB design (optional, for cleaner wiring)
 
 ### Planned
-- [ ] Web interface for data visualization
-- [ ] WiFi connectivity (ESP32)
-- [ ] Multi-sample carousel
-- [ ] Additional assays (ammonia, silicate)
+- 📋 Sensor multiplexer support (multi-sensor switching)
+- 📋 Data visualization and trending
+- 📋 Additional assays (ammonia, silicate)
+- 📋 Multi-sample carousel
 
 ---
 
@@ -374,8 +419,10 @@ SOFTWARE.
 - APHA Standard Methods for Water Analysis
 
 ### Built With:
-- [AdaFruit](https://www.adafruit.com) - PyBadge, sensors, electronics
-- [CircuitPython](https://circuitpython.org) - Embedded Python platform
+- [Raspberry Pi Foundation](https://www.raspberrypi.org) - Raspberry Pi platform
+- [AdaFruit](https://www.adafruit.com) - Motor HAT, sensors, solenoid driver, electronics
+- [CircuitPython (Blinka)](https://circuitpython.org) - Python hardware libraries
+- [Flask](https://flask.palletsprojects.com/) - Web framework
 - API Test Kits - Reagent chemistry
 
 ---
@@ -390,23 +437,26 @@ SOFTWARE.
 
 ## Roadmap
 
-### Version 1.0 (Current Development)
-- Core phosphate & nitrate assays
-- PyBadge controller
-- Manual calibration
-- Basic data logging
+### Version 1.0 (Released)
+- ✅ Raspberry Pi web interface
+- ✅ Core hardware control (motors, solenoids, sensor)
+- ✅ Automated sequences
+- ✅ Web-based configuration
+- ✅ Manual calibration
+- ✅ JSON data storage
 
-### Version 1.1 (Future)
-- Web dashboard
-- WiFi connectivity
-- Automatic calibration
-- Multi-sample queue
+### Version 1.1 (In Progress)
+- 🔨 CAD designs for enclosure
+- 🔨 Hardware assembly documentation
+- 🔨 Assay-specific protocols
 
-### Version 2.0 (Vision)
+### Version 2.0 (Future)
+- Sensor multiplexer support
+- Data visualization and trending
+- Historical data storage (SQLite)
 - Additional assays (ammonia, alkalinity, calcium)
-- Sample carousel (8-12 samples)
-- Cloud data sync
-- Smartphone app
+- Sample carousel automation
+- Mobile-optimized UI
 
 ---
 

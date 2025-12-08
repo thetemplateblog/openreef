@@ -6,7 +6,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
     min-height: 100vh;
     padding: 20px;
     color: #333;
@@ -26,7 +26,7 @@ header {
 }
 
 h1 {
-    color: #667eea;
+    color: #2F80ED;
     font-size: 2.5em;
     margin-bottom: 15px;
 }
@@ -80,7 +80,7 @@ h1 {
 }
 
 .tab-btn.active {
-    background: #667eea;
+    background: #2F80ED;
     color: white;
 }
 
@@ -101,7 +101,7 @@ h1 {
 }
 
 .card h2 {
-    color: #667eea;
+    color: #2F80ED;
     margin-bottom: 20px;
     font-size: 1.8em;
 }
@@ -119,12 +119,12 @@ h1 {
 }
 
 .btn-primary {
-    background: #667eea;
+    background: #2F80ED;
     color: white;
 }
 
 .btn-primary:hover {
-    background: #5568d3;
+    background: #1a5fc4;
     transform: translateY(-2px);
 }
 
@@ -154,7 +154,7 @@ h1 {
 }
 
 .measurement-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2F80ED 0%, #2F80ED 100%);
     padding: 25px;
     border-radius: 12px;
     text-align: center;
@@ -188,11 +188,11 @@ h1 {
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 15px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #2F80ED;
 }
 
 .calibrated-box h3 {
-    color: #667eea;
+    color: #2F80ED;
     margin-bottom: 10px;
 }
 
@@ -217,7 +217,7 @@ h1 {
 }
 
 .motor-box h3 {
-    color: #667eea;
+    color: #2F80ED;
     margin-bottom: 15px;
 }
 
@@ -237,7 +237,7 @@ h1 {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #667eea;
+    background: #2F80ED;
     cursor: pointer;
 }
 
@@ -245,14 +245,14 @@ h1 {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #667eea;
+    background: #2F80ED;
     cursor: pointer;
 }
 
 .motor-value {
     font-size: 1.5em;
     font-weight: bold;
-    color: #667eea;
+    color: #2F80ED;
     margin: 10px 0;
 }
 
@@ -296,7 +296,7 @@ h1 {
 }
 
 input:checked + .slider {
-    background-color: #667eea;
+    background-color: #2F80ED;
 }
 
 input:checked + .slider:before {
@@ -308,11 +308,11 @@ input:checked + .slider:before {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 10px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #2F80ED;
 }
 
 .calibration-item h3 {
-    color: #667eea;
+    color: #2F80ED;
     margin-bottom: 5px;
 }
 

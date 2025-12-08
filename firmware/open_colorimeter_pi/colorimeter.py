@@ -10,8 +10,8 @@ try:
     import board
     import busio
     import adafruit_tsl2591
-    from adafruit_pca9685 import PCA9685
-    from adafruit_motor import motor
+    from adafruit_motorkit import MotorKit
+    from adafruit_mcp230xx.mcp23017 import MCP23017
     MOCK_MODE = False
 except (ImportError, NotImplementedError) as e:
     print(f"Hardware libraries not available: {e}")
@@ -30,7 +30,11 @@ class Colorimeter:
         self.blank_value = 1.0
         self.sensor_connected = False
         self.motor_connected = False
+        self.solenoid_connected = False
         self.calibrations = {}
+        self.mappings = {}
+        self.sequences = {}
+        self.solenoids = {}  # Track solenoid pin objects
 
         if not MOCK_MODE:
             self._init_hardware()
@@ -38,6 +42,8 @@ class Colorimeter:
             print("Mock mode - no hardware initialization")
 
         self._load_calibrations()
+        self._load_mappings()
+        self._load_sequences()
 
     def _init_hardware(self):
         """Initialize I2C devices"""
@@ -58,14 +64,26 @@ class Colorimeter:
 
             # Initialize motor controller
             try:
-                self.pca = PCA9685(i2c, address=0x60)
-                self.pca.frequency = 1600
-                self.motors = {}
+                self.kit = MotorKit()
                 self.motor_connected = True
-                print("PCA9685 motor controller initialized")
+                print("Motor HAT (MotorKit) initialized")
             except Exception as e:
                 print(f"Motor controller not found: {e}")
-                self.pca = None
+                self.kit = None
+
+            # Initialize solenoid driver (MCP23017)
+            try:
+                self.mcp = MCP23017(i2c, address=0x20)
+                # Initialize all 8 solenoid pins as outputs (off by default)
+                for i in range(8):
+                    pin = self.mcp.get_pin(i)
+                    pin.switch_to_output(value=False)
+                    self.solenoids[i + 1] = pin  # Solenoids numbered 1-8
+                self.solenoid_connected = True
+                print("Solenoid driver (MCP23017) initialized - 8 channels")
+            except Exception as e:
+                print(f"Solenoid driver not found: {e}")
+                self.mcp = None
 
         except Exception as e:
             print(f"I2C initialization failed: {e}")
@@ -79,6 +97,26 @@ class Colorimeter:
         except FileNotFoundError:
             print("No calibrations.json found - using empty calibrations")
             self.calibrations = {}
+
+    def _load_mappings(self):
+        """Load device mappings (names, descriptions)"""
+        try:
+            with open('mappings.json', 'r') as f:
+                self.mappings = json.load(f)
+            print(f"Loaded mappings")
+        except FileNotFoundError:
+            print("No mappings.json found - using defaults")
+            self.mappings = {}
+
+    def _load_sequences(self):
+        """Load saved sequences"""
+        try:
+            with open('sequences.json', 'r') as f:
+                self.sequences = json.load(f)
+            print(f"Loaded {len(self.sequences)} sequences")
+        except FileNotFoundError:
+            print("No sequences.json found - using empty sequences")
+            self.sequences = {}
 
     def get_raw_sensor_value(self):
         """Read raw sensor value"""
@@ -170,31 +208,26 @@ class Colorimeter:
             })
         return cal_list
 
-    def _init_motor(self, motor_num):
-        """Initialize a specific motor"""
-        if MOCK_MODE or not self.pca:
-            return None
+    def get_mappings(self):
+        """Get device mappings"""
+        return self.mappings
 
-        if motor_num in self.motors:
-            return self.motors[motor_num]
+    def get_sequences(self):
+        """Get saved sequences"""
+        return self.sequences
 
-        # Motor channel mappings on PCA9685
-        channels = {
-            1: {'pwm': 8, 'in1': 9, 'in2': 10},
-            2: {'pwm': 13, 'in1': 12, 'in2': 11},
-            3: {'pwm': 2, 'in1': 3, 'in2': 4},
-            4: {'pwm': 7, 'in1': 6, 'in2': 5},
-        }
-
-        if motor_num not in channels:
+    def _get_motor(self, motor_num):
+        """Get motor object by number"""
+        if motor_num == 1:
+            return self.kit.motor1
+        elif motor_num == 2:
+            return self.kit.motor2
+        elif motor_num == 3:
+            return self.kit.motor3
+        elif motor_num == 4:
+            return self.kit.motor4
+        else:
             raise ValueError(f"Motor number must be 1-4, got {motor_num}")
-
-        ch = channels[motor_num]
-        self.motors[motor_num] = motor.DCMotor(
-            self.pca.channels[ch['in1']],
-            self.pca.channels[ch['in2']]
-        )
-        return self.motors[motor_num]
 
     def set_motor_throttle(self, motor_num, throttle):
         """Set motor speed (-1.0 to 1.0)"""
@@ -202,18 +235,72 @@ class Colorimeter:
             print(f"Mock: Motor {motor_num} throttle = {throttle}")
             return
 
-        m = self._init_motor(motor_num)
-        if m:
+        if not self.kit:
+            print(f"Motor controller not available")
+            return
+
+        try:
+            motor = self._get_motor(motor_num)
             throttle = max(-1.0, min(1.0, throttle))
-            m.throttle = throttle
+            motor.throttle = throttle
+            print(f"Motor {motor_num} set to throttle {throttle}")
+        except Exception as e:
+            print(f"Error setting motor {motor_num} throttle: {e}")
 
     def stop_motor(self, motor_num):
         """Stop a motor"""
         self.set_motor_throttle(motor_num, 0)
 
+    def set_solenoid(self, solenoid_num, state):
+        """Set solenoid state (True=on, False=off)"""
+        if MOCK_MODE:
+            print(f"Mock: Solenoid {solenoid_num} set to {state}")
+            return
+
+        if not self.mcp:
+            print(f"Solenoid driver not available")
+            return
+
+        if solenoid_num not in range(1, 9):
+            print(f"Solenoid number must be 1-8, got {solenoid_num}")
+            return
+
+        try:
+            self.solenoids[solenoid_num].value = state
+            state_str = "ON" if state else "OFF"
+            print(f"Solenoid {solenoid_num} set to {state_str}")
+        except Exception as e:
+            print(f"Error setting solenoid {solenoid_num}: {e}")
+
+    def get_solenoid_state(self, solenoid_num):
+        """Get current solenoid state"""
+        if MOCK_MODE or not self.mcp:
+            return False
+
+        if solenoid_num not in range(1, 9):
+            return False
+
+        try:
+            return self.solenoids[solenoid_num].value
+        except Exception as e:
+            print(f"Error reading solenoid {solenoid_num}: {e}")
+            return False
+
     def cleanup(self):
         """Cleanup hardware"""
-        if not MOCK_MODE and self.pca:
-            for motor_num in self.motors:
-                self.stop_motor(motor_num)
-            self.pca.deinit()
+        if not MOCK_MODE and self.kit:
+            try:
+                self.kit.motor1.throttle = 0
+                self.kit.motor2.throttle = 0
+                self.kit.motor3.throttle = 0
+                self.kit.motor4.throttle = 0
+            except:
+                pass
+
+        if not MOCK_MODE and self.mcp:
+            try:
+                # Turn off all solenoids
+                for i in range(1, 9):
+                    self.set_solenoid(i, False)
+            except:
+                pass
