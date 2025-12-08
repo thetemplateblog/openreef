@@ -1,0 +1,30 @@
+{
+  "Phosphate": {
+    "units": "ppm",
+    "led": "880",
+    "fit_type": "polynomial",
+    "fit_coef": [
+      0.0,
+      2.709,
+      0.0
+    ],
+    "range": {
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "Nitrate": {
+    "units": "ppm",
+    "led": "528",
+    "fit_type": "polynomial",
+    "fit_coef": [
+      0.0,
+      1.0,
+      0.0
+    ],
+    "range": {
+      "min": 0.0,
+      "max": 90.0
+    }
+  }
+}

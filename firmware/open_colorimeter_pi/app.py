@@ -119,17 +119,21 @@ def get_solenoid_state(solenoid_num):
 
 @app.route('/api/config/load', methods=['GET'])
 def load_config_files():
-    """Load all configuration files"""
+    """Load all configuration files (fall back to templates if user files don't exist)"""
     try:
-        # Load mappings.json
+        # Load mappings.json (or template)
         mappings_data = {}
         try:
             with open('mappings.json', 'r') as f:
                 mappings_data = json.load(f)
         except FileNotFoundError:
-            mappings_data = {}
+            try:
+                with open('mappings_templates.json', 'r') as f:
+                    mappings_data = json.load(f)
+            except FileNotFoundError:
+                mappings_data = {}
 
-        # Load sequences.json
+        # Load sequences.json (user sequences only - templates loaded separately)
         sequences_data = {}
         try:
             with open('sequences.json', 'r') as f:
@@ -137,13 +141,17 @@ def load_config_files():
         except FileNotFoundError:
             sequences_data = {}
 
-        # Load calibrations.json
+        # Load calibrations.json (or template)
         calibrations_data = {}
         try:
             with open('calibrations.json', 'r') as f:
                 calibrations_data = json.load(f)
         except FileNotFoundError:
-            calibrations_data = {}
+            try:
+                with open('calibrations_templates.json', 'r') as f:
+                    calibrations_data = json.load(f)
+            except FileNotFoundError:
+                calibrations_data = {}
 
         return jsonify({
             'mappings': mappings_data,

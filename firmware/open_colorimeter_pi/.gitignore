@@ -7,3 +7,8 @@ env/
 venv/
 *.log
 .DS_Store
+
+# User configuration files (generated at runtime)
+sequences.json
+mappings.json
+calibrations.json

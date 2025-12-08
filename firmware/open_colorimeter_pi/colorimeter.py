@@ -95,8 +95,14 @@ class Colorimeter:
                 self.calibrations = json.load(f)
             print(f"Loaded {len(self.calibrations)} calibrations")
         except FileNotFoundError:
-            print("No calibrations.json found - using empty calibrations")
-            self.calibrations = {}
+            # Load from template
+            try:
+                with open('calibrations_templates.json', 'r') as f:
+                    self.calibrations = json.load(f)
+                print(f"No calibrations.json found - loaded {len(self.calibrations)} from template")
+            except FileNotFoundError:
+                print("No calibrations template found - using empty calibrations")
+                self.calibrations = {}
 
     def _load_mappings(self):
         """Load device mappings (names, descriptions)"""
@@ -105,8 +111,14 @@ class Colorimeter:
                 self.mappings = json.load(f)
             print(f"Loaded mappings")
         except FileNotFoundError:
-            print("No mappings.json found - using defaults")
-            self.mappings = {}
+            # Load from template
+            try:
+                with open('mappings_templates.json', 'r') as f:
+                    self.mappings = json.load(f)
+                print("No mappings.json found - loaded from template")
+            except FileNotFoundError:
+                print("No mappings template found - using empty defaults")
+                self.mappings = {}
 
     def _load_sequences(self):
         """Load saved sequences and merge with templates"""

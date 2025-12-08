@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus();
     refreshMeasurement();
     loadCalibrations();
-    loadConfigFiles();
 });
 
 // Tab switching
@@ -33,7 +32,7 @@ function showTab(tabName) {
     if (tabName === 'calibrations') {
         loadCalibrationsEditor();
     } else if (tabName === 'config') {
-        loadConfigFiles();
+        loadMappingsEditor();
     }
 }
 
@@ -803,6 +802,26 @@ async function loadConfigFiles() {
     } catch (error) {
         console.error('Load config files error:', error);
         showConfigStatus('Error loading files: ' + error, 'error');
+    }
+}
+
+async function loadMappingsEditor() {
+    try {
+        const response = await fetch('/api/config/load');
+        const data = await response.json();
+
+        if (data.error) {
+            showConfigStatus('Error loading mappings: ' + data.error, 'error');
+            return;
+        }
+
+        const mappingsEditor = document.getElementById('mappings-editor');
+        if (mappingsEditor) {
+            mappingsEditor.value = JSON.stringify(data.mappings, null, 2);
+        }
+    } catch (error) {
+        console.error('Load mappings error:', error);
+        showConfigStatus('Error loading mappings: ' + error, 'error');
     }
 }
 

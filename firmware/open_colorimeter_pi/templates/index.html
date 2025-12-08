@@ -262,7 +262,7 @@ measure Phosphate</textarea>
 
                 <div id="sequence-status" style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; display: none;">
                     <h3 style="color: #2F80ED; margin-bottom: 10px;">Status</h3>
-                    <div id="sequence-progress" style="font-family: monospace; white-space: pre-line;"></div>
+                    <div id="sequence-progress" style="font-family: monospace; white-space: pre-line; max-height: 400px; overflow-y: auto; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
                 </div>
             </div>
         </div>
@@ -298,8 +298,8 @@ measure Phosphate</textarea>
         <!-- Config Tab -->
         <div id="config-tab" class="tab-content">
             <div class="card">
-                <h2>Configuration Editor</h2>
-                <p style="color: #666; margin-bottom: 20px;">Edit configuration files. Changes take effect after saving and reloading the page.</p>
+                <h2>Device Mappings</h2>
+                <p style="color: #666; margin-bottom: 20px;">Configure device names, test definitions, and sensor mappings. Changes take effect after saving.</p>
 
                 <h3 style="color: #2F80ED; margin-bottom: 10px;">mappings.json</h3>
                 <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Device names, test definitions, and sensor mappings</p>
@@ -307,25 +307,7 @@ measure Phosphate</textarea>
 
                 <div style="margin: 20px 0;">
                     <button class="btn btn-primary" onclick="saveMappings()">Save Mappings</button>
-                    <button class="btn btn-secondary" onclick="loadConfigFiles()">Reload</button>
-                </div>
-
-                <h3 style="color: #2F80ED; margin-bottom: 10px; margin-top: 30px;">sequences.json</h3>
-                <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Saved command sequences</p>
-                <textarea id="sequences-editor" rows="18" style="width: 100%; padding: 15px; font-size: 0.95em; border: 2px solid #e2e8f0; border-radius: 8px; font-family: 'Courier New', monospace; background: #f8fafc;"></textarea>
-
-                <div style="margin: 20px 0;">
-                    <button class="btn btn-primary" onclick="saveSequencesConfig()">Save Sequences</button>
-                    <button class="btn btn-secondary" onclick="loadConfigFiles()">Reload</button>
-                </div>
-
-                <h3 style="color: #2F80ED; margin-bottom: 10px; margin-top: 30px;">calibrations.json</h3>
-                <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Calibration curves for measurements</p>
-                <textarea id="calibrations-editor" rows="18" style="width: 100%; padding: 15px; font-size: 0.95em; border: 2px solid #e2e8f0; border-radius: 8px; font-family: 'Courier New', monospace; background: #f8fafc;"></textarea>
-
-                <div style="margin: 20px 0;">
-                    <button class="btn btn-primary" onclick="saveCalibrations()">Save Calibrations</button>
-                    <button class="btn btn-secondary" onclick="loadConfigFiles()">Reload</button>
+                    <button class="btn btn-secondary" onclick="loadMappingsEditor()">Reload</button>
                 </div>
 
                 <div id="config-status" style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; display: none;">
