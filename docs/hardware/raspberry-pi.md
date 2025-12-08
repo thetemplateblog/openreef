@@ -1,4 +1,11 @@
-# Raspberry Pi Hardware Guide
+---
+layout: single
+title: "Raspberry Pi Hardware Guide"
+permalink: /docs/hardware/raspberry-pi/
+toc: true
+toc_label: "On This Page"
+toc_icon: "cog"
+---
 
 Complete parts list and assembly guide for the Raspberry Pi-based Open Colorimeter.
 
