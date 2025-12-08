@@ -1,20 +1,3 @@
 # Main navigation (top menu)
+# Disabled for now
 main:
-  - title: "Get Started"
-    url: /firmware/open_colorimeter_pi/README/
-
-  - title: "Hardware Guide"
-    url: /docs/hardware/raspberry-pi/
-
-  - title: "Assays"
-    children:
-      - title: "Phosphate"
-        url: /docs/assays/phosphate/
-      - title: "Nitrate"
-        url: /docs/assays/nitrate/
-
-  - title: "Calibration"
-    url: /docs/calibration/calibration-guide/
-
-  - title: "GitHub"
-    url: https://github.com/thetemplateblog/openreef
