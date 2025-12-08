@@ -31,12 +31,12 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 ### 📖 Documentation
 
 - **[Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md)** - Complete setup instructions
-- **[Full Pi Documentation](firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
+- **[Full Pi Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
 - [Introduction & Overview](docs/introduction/overview.md) - System overview
 
 ### 🧪 Assay Protocols
 
-- [Phosphate Assay](docs/assays/phosphate.md) - 625nm colorimetric method
+- [Phosphate Assay](docs/assays/phosphate.md) - 880nm colorimetric method
 - [Nitrate Assay](docs/assays/nitrate.md) - 528nm colorimetric method
 - [All Tests Database](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
 
@@ -47,9 +47,9 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 
 ### 💻 Software
 
-- [Web Interface](firmware/open_colorimeter_pi/README.md) - Flask app documentation
+- [Web Interface](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md) - Flask app documentation
 - [Calibration Guide](docs/calibration/calibration-guide.md) - Calibration procedures
-- [Configuration](firmware/open_colorimeter_pi/README.md#configuration) - Mappings, sequences, calibrations
+- [Configuration](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md#configuration) - Mappings, sequences, calibrations
 
 ### 🔗 Related Projects
 
@@ -101,7 +101,7 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 | Feature | Phosphate | Nitrate |
 |---------|-----------|---------|
 | **Chemistry** | Ascorbic acid method | Cadmium reduction + Griess |
-| **Wavelength** | 625 nm (Red) | 528 nm (Green) |
+| **Wavelength** | 880 nm (NIR) | 528 nm (Green) |
 | **Range** | 0-30 ppm PO₄ | 0-90 ppm NO₃ |
 | **Reagent Drops** | 6 + 6 | 10 + 10 |
 | **Reaction Time** | 5-10 min* | 5+ min |
@@ -137,7 +137,7 @@ Components needed:
 - Raspberry Pi 3/4/5
 - Adafruit DC & Stepper Motor HAT
 - TSL2591 light sensor
-- MCP23017 solenoid driver (optional)
+- MCP23017 solenoid driver
 - DC motors, solenoid valves, power supply
 
 Detailed guides:
@@ -218,7 +218,7 @@ openreef/
 - Range: 0-30 ppm PO₄
 - LOD: 0.05 ppm
 - LOQ: 0.10 ppm
-- Wavelength: 625 nm
+- Wavelength: 880 nm
 
 **Nitrate (NO₃)**
 - Method: Cadmium Reduction + Griess
@@ -278,7 +278,7 @@ Chemistry and instrumentation demonstrations:
 - **Motor Control**: Adafruit DC & Stepper Motor HAT (I2C address 0x60)
 - **Valve Control**: Adafruit I2C 8-Channel Solenoid Driver MCP23017 (I2C address 0x20)
 - **Motors**: 4× DC motors (4.5-13.5V, <1.2A)
-- **Solenoids**: 8× 12V solenoid valves (optional)
+- **Solenoids**: 8× 12V solenoid valves
 
 ### Fluidics
 
@@ -372,7 +372,7 @@ This is an open-source project. Contributions welcome!
 - Wear gloves and eye protection
 - Work in ventilated area
 - Dispose of nitrate waste properly (hazardous waste)
-- Follow API test kit MSDS
+- Follow Red Sea Pro test kit MSDS
 
 ### Electrical Safety
 
@@ -423,7 +423,7 @@ SOFTWARE.
 - [AdaFruit](https://www.adafruit.com) - Motor HAT, sensors, solenoid driver, electronics
 - [CircuitPython (Blinka)](https://circuitpython.org) - Python hardware libraries
 - [Flask](https://flask.palletsprojects.com/) - Web framework
-- API Test Kits - Reagent chemistry
+- Red Sea Pro Test Kits - Reagent chemistry
 
 ---
 

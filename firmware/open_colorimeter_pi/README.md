@@ -116,7 +116,7 @@ Done! The service automatically restarts with your changes.
      - **SDA** → Pi SDA (GPIO 2)
    - Can use breadboard or direct wiring
 
-5. **Connect Solenoid Driver (Optional)**
+5. **Connect Solenoid Driver**
    - Adafruit I2C 8-Channel Solenoid Driver connects via I2C:
      - **VIN** → Pi 3.3V or 5V
      - **GND** → Pi GND

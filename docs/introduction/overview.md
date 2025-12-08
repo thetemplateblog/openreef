@@ -11,14 +11,14 @@ toc_icon: "cog"
 
 ## Overview
 
-The OpenReef Automated System is an open-source, PyBadge-controlled platform for automated colorimetric water quality testing. The system performs automated phosphate and nitrate assays using standard API test kits with minimal user intervention.
+The OpenReef Automated System is an open-source, Raspberry Pi-controlled platform for automated colorimetric water quality testing. The system performs automated phosphate and nitrate assays using Red Sea Pro test kits with minimal user intervention.
 
 ### Key Features
 
 - **Fully Automated**: Automated sample handling, reagent addition, mixing, timing, and measurement
 - **Dual Assay Capability**: Supports both phosphate and nitrate testing
 - **Precise Control**: Automated peristaltic pumps ensure accurate reagent dosing
-- **Colorimetric Detection**: Uses wavelength-specific colorimetry (625nm for phosphate, 528nm for nitrate)
+- **Colorimetric Detection**: Uses wavelength-specific colorimetry (880nm for phosphate, 528nm for nitrate)
 - **Self-Cleaning**: Automatic RO water flush cycle between tests
 - **Open Source**: Complete hardware designs, firmware, and documentation freely available
 
@@ -54,7 +54,7 @@ When a sample reacts with specific reagents, colored compounds form. The intensi
 
 Orthophosphate reacts with molybdate and antimony to form a phosphomolybdate complex. Ascorbic acid reduces this complex to form an intensely blue-colored compound.
 
-- **Detection Wavelength**: 625nm (red LED)
+- **Detection Wavelength**: 880nm (near-infrared)
 - **Reaction Time**: 5-10 minutes (critical timing window)
 - **Range**: 0-30 ppm PO₄
 - **Color**: Blue (intensity increases with concentration)
@@ -75,7 +75,7 @@ Nitrate (NO₃⁻) is reduced to nitrite (NO₂⁻) using cadmium reduction. The
 | Feature | Phosphate Assay | Nitrate Assay |
 |---------|----------------|---------------|
 | **Detection Method** | Ascorbic acid method | Cadmium reduction + Griess |
-| **Wavelength** | 625 nm (Red LED) | 528 nm (Green LED) |
+| **Wavelength** | 880 nm (NIR) | 528 nm (Green LED) |
 | **Reagent 1 Drops** | 6 drops | 10 drops |
 | **Reagent 2 Drops** | 6 drops | 10 drops |
 | **Reaction Time** | 5-10 minutes* | 5+ minutes |
@@ -89,14 +89,13 @@ Nitrate (NO₃⁻) is reduced to nitrite (NO₂⁻) using cadmium reduction. The
 
 The OpenReef system consists of:
 
-1. **Controller**: AdaFruit PyBadge (ARM Cortex-M4, 120 MHz, color display)
+1. **Controller**: Raspberry Pi with Flask web interface
 2. **Fluidics**:
-   - 2 peristaltic pumps (water and reagent)
-   - 3 solenoid valves (reagent, water source, waste)
+   - 4 DC motor channels (peristaltic pumps)
+   - 8 solenoid valves
    - Tubing and connectors
 3. **Optical System**:
-   - Colorimeter with dual LEDs (625nm, 528nm)
-   - Light sensor
+   - TSL2591 light sensor
    - Cuvette holder
 4. **Reagent Management**:
    - 2 reagent bottles with bubble mixing
@@ -120,4 +119,4 @@ The automated sequence follows these steps:
 7. **Calculation**: Convert absorbance to concentration using calibration curve
 8. **Cleanup**: Flush system with RO water for next test
 
-All steps are fully automated by the PyBadge firmware.
+All steps are fully automated via the web interface and command sequences.

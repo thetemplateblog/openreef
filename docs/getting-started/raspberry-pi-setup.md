@@ -1,3 +1,9 @@
+---
+title: "Raspberry Pi Setup Guide"
+permalink: /docs/getting-started/raspberry-pi-setup/
+excerpt: "Complete step-by-step guide to set up your Raspberry Pi-based Open Colorimeter with web interface."
+---
+
 # Raspberry Pi Setup Guide
 
 Complete step-by-step guide to set up your Raspberry Pi-based Open Colorimeter with web interface.
@@ -26,7 +32,7 @@ Complete step-by-step guide to set up your Raspberry Pi-based Open Colorimeter w
 - MicroSD card (16GB+) with OS installed
 - TSL2591 light sensor
 - Adafruit DC & Stepper Motor HAT
-- (Optional) MCP23017 solenoid driver
+- MCP23017 solenoid driver
 - 12V power supply for motors
 - USB-C power supply for Pi
 
@@ -248,7 +254,7 @@ pip3 install -r requirements.txt
    - SCL → GPIO 3
    - SDA → GPIO 2
 
-4. **Connect Solenoid Driver** (optional):
+4. **Connect Solenoid Driver**:
    - VIN → Pi 3.3V or 5V
    - GND → Pi GND
    - SCL → GPIO 3
@@ -628,9 +634,9 @@ sudo journalctl -u colorimeter -n 50
 
 ## Additional Resources
 
-- **[Full Documentation](../../firmware/open_colorimeter_pi/README.md)** - Complete Pi guide
+- **[Full Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md)** - Complete Pi guide
 - **[Hardware Guide](../hardware/raspberry-pi.md)** - Parts list and assembly
-- **[API Documentation](../../firmware/open_colorimeter_pi/README.md#api-endpoints)** - REST API reference
+- **[API Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md#api-endpoints)** - REST API reference
 - **[GitHub Issues](https://github.com/thetemplateblog/openreef/issues)** - Report problems
 
 ---

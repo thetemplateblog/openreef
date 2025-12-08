@@ -17,7 +17,7 @@ feature_row:
   - image_path: /assets/images/phosphate.jpg
     alt: "Phosphate Testing"
     title: "Phosphate Assay"
-    excerpt: "0-30 ppm range, 625nm colorimetric detection, 12-minute automated cycle"
+    excerpt: "0-30 ppm range, 880nm colorimetric detection, 12-minute automated cycle"
     url: "/docs/assays/phosphate/"
     btn_label: "Learn More"
     btn_class: "btn--primary"
@@ -60,12 +60,12 @@ feature_row:
 ### 📖 Documentation
 
 - [Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md) - Complete setup instructions
-- [Full Documentation](firmware/open_colorimeter_pi/README.md) - Detailed Pi colorimeter guide
+- [Full Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md) - Detailed Pi colorimeter guide
 - [Introduction & Overview](docs/introduction/overview.md) - System overview and measurement theory
 
 ### 🧪 Assay Protocols
 
-- [Phosphate Assay](docs/assays/phosphate.md) - 625nm colorimetric method (0-30 ppm)
+- [Phosphate Assay](docs/assays/phosphate.md) - 880nm colorimetric method (0-30 ppm)
 - [Nitrate Assay](docs/assays/nitrate.md) - 528nm colorimetric method (0-90 ppm)
 - [All Tests](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
 
@@ -78,9 +78,9 @@ feature_row:
 
 ### 💻 Software
 
-- [Web Interface Documentation](firmware/open_colorimeter_pi/README.md) - Flask app, API, automation
+- [Web Interface Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md) - Flask app, API, automation
 - [Calibration Guide](docs/calibration/calibration-guide.md) - Calibration procedures
-- [Configuration Files](firmware/open_colorimeter_pi/README.md#configuration) - Edit mappings, sequences, calibrations
+- [Configuration Files](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md#configuration) - Edit mappings, sequences, calibrations
 
 ---
 
@@ -127,7 +127,7 @@ feature_row:
 | Feature | Phosphate | Nitrate |
 |---------|-----------|---------|
 | **Chemistry** | Ascorbic acid method | Cadmium reduction + Griess |
-| **Wavelength** | 625 nm (Red) | 528 nm (Green) |
+| **Wavelength** | 880 nm (NIR) | 528 nm (Green) |
 | **Range** | 0-30 ppm PO₄ | 0-90 ppm NO₃ |
 | **Reaction Time** | 5-10 min* | 5+ min |
 | **Total Time** | ~12 min | ~10 min |
@@ -186,7 +186,7 @@ feature_row:
 3. **Connect Hardware**
    - Stack Motor HAT on Raspberry Pi GPIO
    - Connect TSL2591 sensor via I2C
-   - Connect MCP23017 solenoid driver (optional)
+   - Connect MCP23017 solenoid driver
    - Wire motors and valves
 
 4. **Configure & Calibrate**
@@ -229,7 +229,7 @@ This project is licensed under the **MIT License**.
 Built with:
 - [AdaFruit](https://www.adafruit.com) - PyBadge, sensors, electronics
 - [CircuitPython](https://circuitpython.org) - Embedded Python platform
-- API Test Kits - Reagent chemistry
+- Red Sea Pro Test Kits - Reagent chemistry
 
 ---
 

@@ -57,7 +57,7 @@ The Raspberry Pi version provides a web-based interface accessible from any devi
 - Stackable design
 - Separate motor power supply
 
-### Solenoid Control (Optional)
+### Solenoid Control
 
 | Component | Description | Adafruit PID | Est. Cost |
 |-----------|-------------|--------------|-----------|
@@ -110,7 +110,7 @@ The Raspberry Pi version provides a web-based interface accessible from any devi
 | Component | Description | Source | Est. Cost |
 |-----------|-------------|--------|-----------|
 | **Optical Cuvette** | 1cm path length, 3.5mL | [Amazon](https://www.amazon.com/s?k=1cm+optical+cuvette), Lab suppliers | $10-20 |
-| **LED Light Source** | 525nm (green) or 625nm (red) | Adafruit | $5-10 |
+| **LED Light Source** | 525nm (green) or 880nm (NIR) | Adafruit | $5-10 |
 
 **Cuvette Requirements:**
 - Material: Optical-grade plastic or quartz
@@ -185,7 +185,7 @@ Connect 12V power supply to Motor HAT green terminal:
 
 **Warning:** Do NOT connect 12V to Raspberry Pi GPIO!
 
-### 5. Connect Solenoids (Optional)
+### 5. Connect Solenoids
 
 If using solenoid valves:
 1. Connect 12V power to solenoid driver
@@ -309,7 +309,7 @@ Should show devices at their respective addresses.
 - [Adafruit TSL2591 Guide](https://learn.adafruit.com/adafruit-tsl2591)
 - [Adafruit Solenoid Driver Guide](https://learn.adafruit.com/adafruit-i2c-to-8-channel-solenoid-driver)
 - [I2C Configuration](https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c)
-- [Full Software Documentation](../../firmware/open_colorimeter_pi/README.md)
+- [Full Software Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md)
 
 ---
 
