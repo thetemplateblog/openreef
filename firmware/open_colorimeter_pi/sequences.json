@@ -1,16 +1,1 @@
-{
-  "Phosphate Test": {
-    "description": "Full phosphate measurement cycle",
-    "commands": [
-      "Sample, 30",
-      "Solenoid 1, on",
-      "wait, 5",
-      "Solenoid 1, off",
-      "Reagent, -15",
-      "wait, 10",
-      "blank",
-      "wait, 2",
-      "measure Phosphate"
-    ]
-  }
-}
+{}

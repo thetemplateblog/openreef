@@ -173,14 +173,20 @@ def save_mappings_file():
 
 @app.route('/api/sequences/save', methods=['POST'])
 def save_sequences_file():
-    """Save sequences.json"""
+    """Save sequences.json (excludes templates)"""
     try:
         data = request.get_json()
         sequences_content = data.get('content', {})
 
+        # Filter out templates - only save user sequences
+        user_sequences = {
+            name: seq for name, seq in sequences_content.items()
+            if not seq.get('template', False)
+        }
+
         # Write to file with pretty printing
         with open('sequences.json', 'w') as f:
-            json.dump(sequences_content, f, indent=2)
+            json.dump(user_sequences, f, indent=2)
 
         # Reload sequences in colorimeter
         colorimeter._load_sequences()

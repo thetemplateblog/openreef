@@ -333,8 +333,31 @@ async function loadSequenceList() {
         // Clear existing options except the first one
         select.innerHTML = '<option value="">-- Select a sequence --</option>';
 
-        // Add sequences
+        // Add sequences (templates first, then user sequences)
+        const templates = [];
+        const userSequences = [];
+
         for (const [name, seq] of Object.entries(savedSequences)) {
+            if (seq.template) {
+                templates.push([name, seq]);
+            } else {
+                userSequences.push([name, seq]);
+            }
+        }
+
+        // Add templates first
+        for (const [name, seq] of templates) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name + ' (Template)';
+            if (seq.description) {
+                option.title = seq.description;
+            }
+            select.appendChild(option);
+        }
+
+        // Add user sequences
+        for (const [name, seq] of userSequences) {
             const option = document.createElement('option');
             option.value = name;
             option.textContent = name;
@@ -377,6 +400,12 @@ async function saveSequence() {
 
     if (!content) {
         alert('Please enter some commands first');
+        return;
+    }
+
+    // Check if this is a template
+    if (savedSequences[selectedName] && savedSequences[selectedName].template) {
+        alert('Templates cannot be modified. Please use "Save As..." to create a new sequence based on this template.');
         return;
     }
 
@@ -463,6 +492,12 @@ async function deleteSequence() {
 
     if (!selectedName) {
         alert('Please select a sequence to delete');
+        return;
+    }
+
+    // Check if this is a template
+    if (savedSequences[selectedName] && savedSequences[selectedName].template) {
+        alert('Templates cannot be deleted.');
         return;
     }
 

@@ -109,14 +109,29 @@ class Colorimeter:
             self.mappings = {}
 
     def _load_sequences(self):
-        """Load saved sequences"""
+        """Load saved sequences and merge with templates"""
+        # Load templates first
+        templates = {}
+        try:
+            with open('sequences_templates.json', 'r') as f:
+                templates = json.load(f)
+            print(f"Loaded {len(templates)} sequence templates")
+        except FileNotFoundError:
+            print("No sequences_templates.json found")
+
+        # Load user sequences
+        user_sequences = {}
         try:
             with open('sequences.json', 'r') as f:
-                self.sequences = json.load(f)
-            print(f"Loaded {len(self.sequences)} sequences")
+                user_sequences = json.load(f)
+            print(f"Loaded {len(user_sequences)} user sequences")
         except FileNotFoundError:
-            print("No sequences.json found - using empty sequences")
-            self.sequences = {}
+            print("No sequences.json found - creating empty file")
+            user_sequences = {}
+
+        # Merge: templates first, then user sequences (user sequences can't override templates)
+        self.sequences = {**templates, **user_sequences}
+        print(f"Total sequences available: {len(self.sequences)}")
 
     def get_raw_sensor_value(self):
         """Read raw sensor value"""
