@@ -44,7 +44,6 @@ exclude:
   - .gitignore
   - .git/
   - hardware/
-  - firmware/
   - node_modules/
   - vendor/
   - Gemfile
