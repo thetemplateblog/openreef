@@ -31,7 +31,7 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 ### 📖 Documentation
 
 - **[Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md)** - Complete setup instructions
-- **[Full Pi Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
+- **[Full Pi Documentation](firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
 - [Introduction & Overview](docs/introduction/overview.md) - System overview
 
 ### 🧪 Assay Protocols
@@ -47,9 +47,9 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 
 ### 💻 Software
 
-- [Web Interface](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md) - Flask app documentation
+- [Web Interface](firmware/open_colorimeter_pi/README.md) - Flask app documentation
 - [Calibration Guide](docs/calibration/calibration-guide.md) - Calibration procedures
-- [Configuration](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md#configuration) - Mappings, sequences, calibrations
+- [Configuration](firmware/open_colorimeter_pi/README.md#configuration) - Mappings, sequences, calibrations
 
 ### 🔗 Related Projects
 

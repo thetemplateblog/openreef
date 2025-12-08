@@ -634,9 +634,9 @@ sudo journalctl -u colorimeter -n 50
 
 ## Additional Resources
 
-- **[Full Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md)** - Complete Pi guide
+- **[Full Documentation](../../firmware/open_colorimeter_pi/README.md)** - Complete Pi guide
 - **[Hardware Guide](../hardware/raspberry-pi.md)** - Parts list and assembly
-- **[API Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md#api-endpoints)** - REST API reference
+- **[API Documentation](../../firmware/open_colorimeter_pi/README.md#api-endpoints)** - REST API reference
 - **[GitHub Issues](https://github.com/thetemplateblog/openreef/issues)** - Report problems
 
 ---

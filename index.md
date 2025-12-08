@@ -60,7 +60,7 @@ feature_row:
 ### 📖 Documentation
 
 - [Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md) - Complete setup instructions
-- [Full Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md) - Detailed Pi colorimeter guide
+- [Full Documentation](firmware/open_colorimeter_pi/README.md) - Detailed Pi colorimeter guide
 - [Introduction & Overview](docs/introduction/overview.md) - System overview and measurement theory
 
 ### 🧪 Assay Protocols
@@ -78,9 +78,9 @@ feature_row:
 
 ### 💻 Software
 
-- [Web Interface Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md) - Flask app, API, automation
+- [Web Interface Documentation](firmware/open_colorimeter_pi/README.md) - Flask app, API, automation
 - [Calibration Guide](docs/calibration/calibration-guide.md) - Calibration procedures
-- [Configuration Files](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md#configuration) - Edit mappings, sequences, calibrations
+- [Configuration Files](firmware/open_colorimeter_pi/README.md#configuration) - Edit mappings, sequences, calibrations
 
 ---
 

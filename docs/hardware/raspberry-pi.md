@@ -309,7 +309,7 @@ Should show devices at their respective addresses.
 - [Adafruit TSL2591 Guide](https://learn.adafruit.com/adafruit-tsl2591)
 - [Adafruit Solenoid Driver Guide](https://learn.adafruit.com/adafruit-i2c-to-8-channel-solenoid-driver)
 - [I2C Configuration](https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c)
-- [Full Software Documentation](https://github.com/thetemplateblog/openreef/blob/main/firmware/open_colorimeter_pi/README.md)
+- [Full Software Documentation](../../firmware/open_colorimeter_pi/README.md)
 
 ---
 
