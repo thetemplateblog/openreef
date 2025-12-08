@@ -41,8 +41,7 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 
 ### 🔧 Hardware
 
-- [Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list
-- [Adafruit Components](docs/hardware/adafruit-parts-bom.md) - Motor HAT, sensors, driver
+- [Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list and assembly
 
 ### 💻 Software
 
@@ -139,9 +138,8 @@ Components needed:
 - MCP23017 solenoid driver
 - DC motors, solenoid valves, power supply
 
-Detailed guides:
-- **[Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md)** - Complete parts list
-- **[Adafruit Components BOM](docs/hardware/adafruit-parts-bom.md)** - Specific part numbers
+Detailed guide:
+- **[Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md)** - Complete parts list with Adafruit PIDs
 
 ### 2. Software Installation
 
@@ -191,8 +189,7 @@ openreef/
 │   │   ├── phosphate.md
 │   │   └── nitrate.md
 │   ├── hardware/
-│   │   ├── raspberry-pi.md
-│   │   └── adafruit-parts-bom.md
+│   │   └── raspberry-pi.md
 │   └── calibration/
 │       └── calibration-guide.md
 ├── firmware/

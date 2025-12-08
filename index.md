@@ -71,9 +71,6 @@ feature_row:
 ### 🔧 Hardware
 
 - [Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list and assembly
-- [Adafruit Components](docs/hardware/adafruit-parts-bom.md) - Motor HAT, sensors, solenoid driver
-- [Control Led](https://github.com/iorodeo/i_control_led/tree/main)
-- [Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
 
 ### 💻 Software
 
@@ -170,10 +167,10 @@ feature_row:
 **Estimated Cost:** $200-250
 
 1. **Order Components**
-   - [Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list
-   - [Adafruit Components](docs/hardware/adafruit-parts-bom.md) - Motor HAT, sensors, driver
+   - [Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list with Adafruit PIDs
    - Raspberry Pi 3/4/5
    - TSL2591 light sensor
+   - Motor HAT, solenoid driver
    - Fluidics components
 
 2. **Install Software**
