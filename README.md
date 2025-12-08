@@ -30,7 +30,6 @@ Open-source Raspberry Pi web-based colorimeter for water quality testing.
 
 ### 📖 Documentation
 
-- **[Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md)** - Complete setup instructions
 - **[Full Pi Documentation](firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
 - [Introduction & Overview](docs/introduction/overview.md) - System overview
 

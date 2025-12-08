@@ -59,7 +59,6 @@ feature_row:
 
 ### 📖 Documentation
 
-- [Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md) - Complete setup instructions
 - [Full Documentation](firmware/open_colorimeter_pi/README.md) - Detailed Pi colorimeter guide
 - [Introduction & Overview](docs/introduction/overview.md) - System overview and measurement theory
 
