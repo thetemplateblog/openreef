@@ -650,18 +650,14 @@ async function executeSequence() {
             const solenoidNum = findSolenoidByName(deviceName);
 
             if (motorNum !== null) {
-                // Motor command: <motor>, <speed>, <time> OR <motor>, <time> (backwards compatible)
-                let speed, seconds;
-
-                if (parts.length === 3) {
-                    // New format: motor, speed, time
-                    speed = parseFloat(parts[1]);
-                    seconds = parseFloat(parts[2]);
-                } else {
-                    // Old format: motor, time (default to 100% speed)
-                    speed = 100;
-                    seconds = parseFloat(parts[1]);
+                // Motor command: <motor>, <speed>, <time>
+                if (parts.length !== 3) {
+                    progressDiv.innerHTML += `  ⚠ Motor command requires 3 parameters: <motor>, <speed>, <time>\n`;
+                    continue;
                 }
+
+                const speed = parseFloat(parts[1]);
+                const seconds = parseFloat(parts[2]);
 
                 if (isNaN(speed) || isNaN(seconds)) {
                     progressDiv.innerHTML += `  ⚠ Invalid motor parameters\n`;
@@ -669,14 +665,14 @@ async function executeSequence() {
                 }
 
                 // Clamp speed to 0-100
-                speed = Math.max(0, Math.min(100, speed));
+                const clampedSpeed = Math.max(0, Math.min(100, speed));
 
                 // Convert speed percentage to throttle (-1.0 to 1.0)
                 const direction = seconds > 0 ? 1 : -1;
-                const throttle = direction * (speed / 100.0);
+                const throttle = direction * (clampedSpeed / 100.0);
                 const duration = Math.abs(seconds);
 
-                progressDiv.innerHTML += `  🔄 Motor ${motorNum}: ${direction > 0 ? 'forward' : 'reverse'} at ${speed}% for ${duration}s\n`;
+                progressDiv.innerHTML += `  🔄 Motor ${motorNum}: ${direction > 0 ? 'forward' : 'reverse'} at ${clampedSpeed}% for ${duration}s\n`;
 
                 // Start motor
                 await fetch(`/api/motor/${motorNum}/throttle`, {
