@@ -2,11 +2,11 @@
   "Phosphate Test Template": {
     "description": "Template for full phosphate measurement cycle (880nm)",
     "commands": [
-      "Sample, 30",
+      "Sample, 75, 30",
       "Solenoid 1, on",
       "wait, 5",
       "Solenoid 1, off",
-      "Reagent, -15",
+      "Reagent, 50, -15",
       "wait, 10",
       "blank",
       "wait, 300",
@@ -17,11 +17,11 @@
   "Nitrate Test Template": {
     "description": "Template for full nitrate measurement cycle (528nm)",
     "commands": [
-      "Sample, 30",
+      "Sample, 75, 30",
       "Solenoid 1, on",
       "wait, 5",
       "Solenoid 1, off",
-      "Reagent, -15",
+      "Reagent, 50, -15",
       "wait, 10",
       "blank",
       "wait, 300",
