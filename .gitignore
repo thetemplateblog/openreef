@@ -1,60 +1,21 @@
-# Hardware files (not ready yet)
-# Exclude root-level folders but not docs subfolders
-/hardware/
-
 # Jekyll
 _site/
-.sass-cache/
 .jekyll-cache/
 .jekyll-metadata
+.sass-cache/
 vendor/
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Thumbnails
-._*
-
+.bundle/
+Gemfile.lock
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
+*.pyc
+.venv/
 *.egg-info/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-
-# Build artifacts
-*.o
-*.a
-*.so
-
-# CAD temporary files
-*.FCStd1
-*.bak
-*.autosave
-
-# 3D printing
-*.gcode
-*.bgcode
-
-# Environment
-.env
-.env.local
+.pytest_cache/
+# Analyzer runtime
+*.db
+*.db-wal
+*.db-shm
+firmware/openreef_analyzer/config.yaml
+# OS
+.DS_Store

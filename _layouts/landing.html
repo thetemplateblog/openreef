@@ -1,0 +1,138 @@
+---
+layout: default
+body_class: landing
+---
+<main>
+  <!-- ============ HERO ============ -->
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">Open hardware · Reef chemistry · v{{ site.version }}</p>
+      <h1>Lab-grade alkalinity, nitrate and phosphate.<br><em>Every six hours, from your own bench.</em></h1>
+      <p class="lead">OpenReef is an open-source analyzer you build from off-the-shelf parts for about $849. It titrates alkalinity the way oceanographers do, reads nitrate and phosphate by self-blanked colorimetry, and exposes every result through a full REST API.</p>
+      <div class="cta-row">
+        <a class="btn" href="{{ '/docs/getting-started/build-order/' | relative_url }}">Start building</a>
+        <a class="btn btn-ghost" href="{{ site.github_url }}" target="_blank" rel="noopener">View on GitHub ↗</a>
+      </div>
+      <dl class="hero-stats">
+        <div><dt>Parts cost</dt><dd>$849</dd></div>
+        <div><dt>Alkalinity resolution</dt><dd>0.02 dKH</dd></div>
+        <div><dt>Phosphate resolution</dt><dd>0.01 ppm</dd></div>
+        <div><dt>API endpoints</dt><dd>40</dd></div>
+      </dl>
+    </div>
+    <div class="hero-visual">
+      {% include analyzer.svg %}
+      <div class="reading-card" aria-hidden="true">
+        <div class="rc-row"><span class="rc-label">Alkalinity</span><span class="rc-age">12 min ago</span></div>
+        <div class="rc-value">8.29<small>dKH</small></div>
+        <div class="rc-band"><span style="left:38%;width:30%"></span><i style="left:56%"></i></div>
+        <div class="rc-row rc-sub"><span>PO₄ <b>0.08</b> ppm</span><span>NO₃ <b>5.1</b> ppm</span><span class="ok">● in range</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW ============ -->
+  <section class="band">
+    <div class="wrap">
+      <p class="eyebrow">How it measures</p>
+      <h2>Three textbook methods, one small box.</h2>
+      <div class="cols-3">
+        <article class="feature">
+          <svg class="icon" viewBox="0 0 48 48"><path d="M16 6h16v18l8 14a4 4 0 0 1-3.5 6h-25A4 4 0 0 1 8 38l8-14z"/><path d="M14 30h20"/><circle cx="24" cy="36" r="1.5"/></svg>
+          <h3>Alkalinity by Gran titration</h3>
+          <p>A 20 mL sample is titrated with 0.02 N HCl in 60 µL steps while a lab-grade electrode tracks pH. The excess-acid region is extrapolated to the equivalence point, with a DIC correction, so electrode offset drops out of the result.</p>
+          <a href="{{ '/docs/chemistry/alkalinity/' | relative_url }}">Method & math →</a>
+        </article>
+        <article class="feature">
+          <svg class="icon" viewBox="0 0 48 48"><rect x="14" y="8" width="20" height="34" rx="3"/><path d="M14 24h20"/><path d="M4 24h6M38 24h6"/><circle cx="24" cy="33" r="3"/></svg>
+          <h3>Phosphate by molybdenum blue</h3>
+          <p>The cell is read before and after reagent so turbidity and colour cancel. An 850 nm LED and an 11-channel spectral sensor resolve 0.01 ppm PO₄ in a 22 mm cuvette.</p>
+          <a href="{{ '/docs/chemistry/colorimetry/' | relative_url }}">Optics & chemistry →</a>
+        </article>
+        <article class="feature">
+          <svg class="icon" viewBox="0 0 48 48"><path d="M8 36c6-14 10-20 16-20s10 6 16 20"/><path d="M8 36h32"/><path d="M20 12l4-6 4 6"/></svg>
+          <h3>Nitrate by azo dye</h3>
+          <p>Nitrate is reduced and coupled into a pink azo dye read at 540 nm. Reagent kinetics are characterised on your own standards, so any liquid kit — Trident NP or lab-mixed — can be profiled.</p>
+          <a href="{{ '/docs/chemistry/reagents/' | relative_url }}">Reagent options →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HARDWARE ============ -->
+  <section class="wrap split">
+    <div>
+      <p class="eyebrow">Hardware</p>
+      <h2>Five printed syringe pumps, two cells, one Pi.</h2>
+      <p>Every part is something you can order today. The syringe pumps are a NEMA17, a T8 lead screw and a 5 mL glass syringe between two check valves — 0.07 µL per step. Six cheap peristaltic pumps move sample and waste; a dip tube sets the volume so no pump needs to be precise except the ones that are.</p>
+      <ul class="checks">
+        <li>Raspberry Pi 4, Atlas Scientific EZO-pH, AMS AS7341</li>
+        <li>Laser-cut acrylic enclosure, 420 × 460 × 200 mm, wet and dry bays</li>
+        <li>Leak sensor, waste float, reagent accounting, dry-contact alarm</li>
+        <li>OpenSCAD sources, panel DXF/SVG, wiring diagram, costed BOM</li>
+      </ul>
+      <div class="cta-row">
+        <a class="btn btn-ghost" href="{{ '/docs/hardware/bom/' | relative_url }}">Bill of materials</a>
+        <a class="btn btn-ghost" href="{{ '/docs/hardware/electronics/' | relative_url }}">Wiring diagram</a>
+      </div>
+    </div>
+    <div class="spec-table">
+      <table>
+        <thead><tr><th>Parameter</th><th>Range</th><th>Resolution</th><th>Cycle</th></tr></thead>
+        <tbody>
+          <tr><td>Alkalinity</td><td>4–14 dKH</td><td>0.02 dKH</td><td>6–8 min</td></tr>
+          <tr><td>Phosphate</td><td>0–1.0 ppm</td><td>0.01 ppm</td><td>10–12 min</td></tr>
+          <tr><td>Nitrate</td><td>0–50 ppm</td><td>0.1 ppm</td><td>15–30 min</td></tr>
+          <tr><td>Sample per alk test</td><td colspan="3">≈75 mL tank water, 1.5 mL 0.02 N HCl</td></tr>
+          <tr><td>Reagent autonomy</td><td colspan="3">60 days NO₃/PO₄ at 1/day (Trident NP kit) · 2+ months acid</td></tr>
+          <tr><td>Power</td><td colspan="3">12 V DC, &lt;30 W peak</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ SOFTWARE ============ -->
+  <section class="band band-dark">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Software</p>
+        <h2>A real API, not a web page with buttons.</h2>
+        <p>One Python service runs the fluidics, the chemistry math, a scheduler, SQLite history and the dashboard. Every result keeps its raw titration curve or absorbance channels and a quality score. A hardware simulator with a carbonate-system model runs the whole stack on a laptop.</p>
+        <ul class="checks light">
+          <li>REST + WebSocket, OpenAPI schema, API-key auth</li>
+          <li>Hydros developer API rules and a hardware alarm contact</li>
+          <li>MQTT with Home Assistant discovery, webhooks, Prometheus</li>
+          <li>Calibration wizard: pH buffers, acid standardisation, curve fits, reagent characterisation</li>
+        </ul>
+        <a class="btn btn-light" href="{{ '/docs/software/api/' | relative_url }}">API reference</a>
+      </div>
+      <div class="code-card">
+<pre><code>$ curl -s -H "X-API-Key: $KEY" http://openreef.local:8080/api/v1/results/latest
+{
+  "alkalinity": { "value": 8.29, "unit": "dKH", "quality": 0.98, "ts": 1794093600 },
+  "phosphate":  { "value": 0.08, "unit": "ppm", "quality": 1.00, "ts": 1794072600 },
+  "nitrate":    { "value": 5.1,  "unit": "ppm", "quality": 0.95, "ts": 1794074400 }
+}
+
+$ curl -s -X POST -H "X-API-Key: $KEY" http://openreef.local:8080/api/v1/tests/alkalinity
+{ "run_id": 418, "test": "alkalinity", "status": "started" }</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUILD PATH ============ -->
+  <section class="wrap">
+    <p class="eyebrow">Build path</p>
+    <h2>A weekend of printing, a weekend of plumbing.</h2>
+    <ol class="steps">
+      <li><span>01</span><h3>Order & print</h3><p>Order the BOM, print five pump frames, two cell parts and the brackets, cut the panels.</p></li>
+      <li><span>02</span><h3>Wire & flash</h3><p>Pi, drivers, I²C sensors and MOSFET board on the carrier; run <code>deploy/install.sh</code>.</p></li>
+      <li><span>03</span><h3>Plumb & prime</h3><p>Cells, dip tubes, check valves, reagent lines. Prime each pump from the dashboard.</p></li>
+      <li><span>04</span><h3>Calibrate & schedule</h3><p>pH buffers, Na₂CO₃ standard, two colorimetric standards each. Then let it run.</p></li>
+    </ol>
+    <div class="cta-row center">
+      <a class="btn" href="{{ '/docs/getting-started/build-order/' | relative_url }}">Read the build order</a>
+      <a class="btn btn-ghost" href="{{ '/docs/software/simulator/' | relative_url }}">Try the simulator first</a>
+    </div>
+  </section>
+</main>

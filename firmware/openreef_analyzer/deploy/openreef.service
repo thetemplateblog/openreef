@@ -1,0 +1,18 @@
+[Unit]
+Description=OpenReef analyzer (API + dashboard)
+After=network-online.target pigpiod.service
+Wants=network-online.target pigpiod.service
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/openreef
+Environment=OPENREEF_CONFIG=/etc/openreef/config.yaml
+ExecStart=/opt/openreef/.venv/bin/openreef serve
+Restart=on-failure
+RestartSec=5
+# stop pumps if the service dies
+ExecStopPost=/opt/openreef/.venv/bin/python -c "import pigpio;p=pigpio.pi();p.write(17,1);p.stop()"
+
+[Install]
+WantedBy=multi-user.target

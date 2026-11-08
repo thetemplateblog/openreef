@@ -1,0 +1,125 @@
+# OpenReef configuration.  Copy to config.yaml and edit.
+# Pins: "step_pin"/"dir_pin"/leak/relay/LED pins are Raspberry Pi BCM GPIO numbers.
+#       "home_pin" and dc "pin" are MCP23017 pins: 0-7 = port A (inputs), 8-15 = port B (outputs).
+
+name: OpenReef
+db_path: openreef.db
+sim_speedup: 1.0            # set to 50 for fast simulated runs
+
+hardware:
+  backend: sim              # sim | rpi
+  i2c_bus: 1
+  ezo_ph_addr: 0x63
+  as7341_addr: 0x39
+  mcp23017_addr: 0x20
+  stepper_enable_pin: 17
+  leak_pin: 26
+  alarm_relay_pin: 20
+  led_white_pin: 19
+  led_ir_pin: 21
+  heater_pwm_pin: 18
+  waste_float_mcp_pin: 5
+
+  steppers:                 # five identical printed syringe pumps, 5 mL glass syringe, T8x2 lead screw
+    - { name: SP1, step_pin: 27, dir_pin: 22, home_pin: 0, reagent: hcl,    cell: A }
+    - { name: SP2, step_pin: 23, dir_pin: 24, home_pin: 1, reagent: np_r1,  cell: B }
+    - { name: SP3, step_pin: 25, dir_pin: 5,  home_pin: 2, reagent: np_r2,  cell: B }
+    - { name: SP4, step_pin: 6,  dir_pin: 12, home_pin: 3, reagent: np_r3a, cell: B }
+    - { name: SP5, step_pin: 13, dir_pin: 16, home_pin: 4, reagent: np_r3b, cell: B }
+
+  dc:                       # 12 V peristaltic pumps + stirrers on the 8-ch MOSFET board (MCP23017 port B)
+    - { name: FILL_A,  pin: 8,  ml_per_s: 1.4, cell: A, role: fill }
+    - { name: LEVEL_A, pin: 9,  ml_per_s: 1.4, cell: A, role: level }
+    - { name: DRAIN_A, pin: 10, ml_per_s: 1.4, cell: A, role: drain }
+    - { name: FILL_B,  pin: 11, ml_per_s: 1.4, cell: B, role: fill }
+    - { name: LEVEL_B, pin: 12, ml_per_s: 1.4, cell: B, role: level }
+    - { name: DRAIN_B, pin: 13, ml_per_s: 1.4, cell: B, role: drain }
+    - { name: STIR_A,  pin: 14, cell: A, role: stir }
+    - { name: STIR_B,  pin: 15, cell: B, role: stir }
+
+  cells:
+    - { name: A, volume_ml: 20.0, description: "60 mL borosilicate vial, pH electrode, DS18B20, stir bar" }
+    - { name: B, volume_ml: 10.0, path_mm: 22.0, description: "22 mm glass cuvette in light-tight holder, AS7341 + LEDs" }
+
+chemistry:
+  reagents:
+    - { id: hcl,    name: "HCl 0.02 N titrant",        bottle_ml: 500, remaining_ml: 500, pump: SP1 }
+    - { id: np_r1,  name: "Trident NP Reagent 1",      bottle_ml: 120, remaining_ml: 120, pump: SP2 }
+    - { id: np_r2,  name: "Trident NP Reagent 2",      bottle_ml: 120, remaining_ml: 120, pump: SP3 }
+    - { id: np_r3a, name: "Trident NP Reagent 3a",     bottle_ml: 120, remaining_ml: 120, pump: SP4 }
+    - { id: np_r3b, name: "Trident NP Reagent 3b",     bottle_ml: 120, remaining_ml: 120, pump: SP5 }
+
+  alkalinity:
+    acid_reagent: hcl
+    acid_normality: 0.0200      # overwritten by POST /calibration/alkalinity/standardize
+    sample_ml: 20.0
+    initial_dose_ul: 900
+    step_ul: 60
+    gran_ph_min: 3.0
+    gran_ph_max: 3.8
+    min_points: 6
+    max_points: 14
+    stable_dph_per_s: 0.005
+    stable_timeout_s: 25
+
+  # Dose volumes below are STARTING POINTS for the Trident NP kit; run the
+  # characterisation mode (POST /api/v1/tests/characterize) and adjust.
+  phosphate:
+    doses:
+      - { np_r3a: 400 }
+      - { np_r3b: 400 }
+    mix_s: 20
+    develop_s: 600
+    led: ir
+    primary_channel: nir
+    secondary_channel: f8_680
+    temp_coeff_per_c: 0.004
+    cal_coeffs: [0.0, 0.9, 0.0]   # ppm PO4 = c0 + c1*A + c2*A^2 (22 mm path); replaced by calibration
+
+  nitrate:
+    doses:
+      - { np_r1: 500 }
+      - { np_r2: 500 }
+    mix_s: 30
+    develop_s: 1500
+    led: white
+    primary_channel: f5_555
+    secondary_channel: f4_515
+    temp_coeff_per_c: 0.0
+    cal_coeffs: [0.0, 40.0, 0.0]  # ppm NO3 = c0 + c1*A + c2*A^2; replaced by calibration
+
+schedule:
+  - { test: alkalinity, cron: "0 0,6,12,18 * * *" }
+  - { test: phosphate,  cron: "30 9 * * *" }
+  - { test: nitrate,    cron: "0 10 * * *" }
+
+limits:
+  alk_dkh: [7.5, 9.5]
+  no3_ppm: [2.0, 15.0]
+  po4_ppm: [0.03, 0.15]
+
+hydros:
+  enabled: false
+  base_url: https://api.coralvuehydros.com
+  provider_key: ""            # from https://www.coralvuehydros.com/api/
+  device_key: ""              # Hydros app -> Device Properties -> Manage API Keys (Read & write)
+  poll_s: 300
+  rules:
+    # when alkalinity is below 7.5 dKH turn output "Alk Doser" ON for 30 min via override
+    - { when: "alk_dkh < 7.5", output: "Alk Doser", state: "on", minutes: 30 }
+    - { when: "alk_dkh > 9.8", output: "Alk Doser", state: "off", minutes: 360 }
+
+mqtt:
+  enabled: false
+  host: localhost
+  port: 1883
+  base_topic: openreef
+  ha_discovery: true
+
+api:
+  host: 0.0.0.0
+  port: 8080
+  api_keys: []                # e.g. ["change-me-long-random"]; empty = no auth (LAN only!)
+  cors_origins: ["*"]
+
+webhooks: []                  # e.g. ["https://hooks.example.com/openreef"]

@@ -1,0 +1,30 @@
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div>
+      <a class="brand" href="{{ '/' | relative_url }}"><span>OpenReef</span></a>
+      <p class="muted">Open-source automated reef water analyzer. Hardware CERN-OHL-P, software MIT, docs CC BY 4.0.</p>
+    </div>
+    <div>
+      <h4>Build</h4>
+      <a href="{{ '/docs/getting-started/build-order/' | relative_url }}">Build order</a>
+      <a href="{{ '/docs/hardware/bom/' | relative_url }}">Bill of materials</a>
+      <a href="{{ '/docs/hardware/electronics/' | relative_url }}">Wiring</a>
+      <a href="{{ '/docs/hardware/enclosure/' | relative_url }}">Enclosure & CAD</a>
+    </div>
+    <div>
+      <h4>Measure</h4>
+      <a href="{{ '/docs/chemistry/alkalinity/' | relative_url }}">Alkalinity</a>
+      <a href="{{ '/docs/chemistry/colorimetry/' | relative_url }}">Phosphate & nitrate</a>
+      <a href="{{ '/docs/chemistry/reagents/' | relative_url }}">Reagents</a>
+      <a href="{{ '/docs/chemistry/calibration/' | relative_url }}">Calibration</a>
+    </div>
+    <div>
+      <h4>Connect</h4>
+      <a href="{{ '/docs/software/api/' | relative_url }}">REST API</a>
+      <a href="{{ '/docs/software/integrations/' | relative_url }}">Hydros · MQTT · webhooks</a>
+      <a href="{{ site.github_url }}" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="{{ site.github_url }}/issues" target="_blank" rel="noopener">Issues ↗</a>
+    </div>
+  </div>
+  <div class="wrap footer-meta muted">© {{ site.time | date: "%Y" }} OpenReef project · v{{ site.version }} · Not affiliated with Neptune Systems, CoralVue or Hanna Instruments; product names are their owners' trademarks.</div>
+</footer>

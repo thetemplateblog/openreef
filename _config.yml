@@ -1,138 +1,63 @@
-# OpenReef Website Configuration
-# GitHub Pages + Jekyll with Minimal Mistakes theme
+# OpenReef — openreef.dev
+# Custom theme (no remote_theme). Builds on GitHub Pages or locally with `bundle exec jekyll serve`.
 
-# Site settings
 title: OpenReef
-title_separator: "|"
-subtitle: "Automated Water Quality Testing"
-name: "OpenReef Project"
-description: Open-source automated water quality testing for phosphate and nitrate analysis
-baseurl: "" # No baseurl for custom domain
-url: "https://openreef.dev" # Custom domain
-repository: "thetemplateblog/openreef"
-teaser: # path of fallback teaser image
-logo: # path of logo image to display in the masthead
-masthead_title: # overrides the website title displayed in the masthead, use " " for no title
+tagline: Open-source automated reef water analyzer
+description: >-
+  OpenReef is an open-hardware analyzer that measures alkalinity, nitrate and phosphate in reef
+  aquariums on a schedule — Gran titration and self-blanked colorimetry on a Raspberry Pi, with a full
+  REST API, for about $850 in parts.
+url: "https://openreef.dev"
+baseurl: ""
+repository: thetemplateblog/openreef
+github_url: https://github.com/thetemplateblog/openreef
+version: "2.0"
+lang: en
 
-# Theme - Minimal Mistakes
-remote_theme: mmistakes/minimal-mistakes@4.24.0
-minimal_mistakes_skin: "dark" # "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum", "sunrise"
-
-# Site Author
-author:
-  name: "OpenReef Project"
-  avatar: "/assets/images/bio-photo.jpg"
-  bio: "Open-source automated water quality testing"
-  links:
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      url: "https://github.com/thetemplateblog/openreef"
-
-# Site Footer
-footer:
-  links:
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      url: "https://github.com/thetemplateblog/openreef"
-
-# Reading Files
-include:
-  - .htaccess
-  - _pages
-
-exclude:
-  - .gitignore
-  - .git/
-  - hardware/
-  - node_modules/
-  - vendor/
-  - Gemfile
-  - Gemfile.lock
-
-# Conversion
 markdown: kramdown
 highlighter: rouge
-lsi: false
-excerpt_separator: "\n\n"
-incremental: false
-
-# Markdown Processing
 kramdown:
   input: GFM
-  hard_wrap: false
   auto_ids: true
-  footnote_nr: 1
-  entity_output: as_char
-  toc_levels: 1..6
-  smart_quotes: lsquo,rsquo,ldquo,rdquo
-  enable_coderay: false
+  toc_levels: 2..3
+  syntax_highlighter_opts:
+    css_class: highlight
 
-# Defaults
+permalink: pretty
+timezone: America/New_York
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+collections:
+  docs:
+    output: true
+    permalink: /docs/:path/
+
 defaults:
-  # _posts
-  - scope:
-      path: ""
-      type: posts
-    values:
-      layout: single
-      author_profile: true
-      read_time: true
-      comments: false
-      share: true
-      related: true
-  # _pages
-  - scope:
-      path: "_pages"
-      type: pages
-    values:
-      layout: single
-      author_profile: true
-  # _docs
   - scope:
       path: ""
       type: docs
     values:
-      layout: single
-      read_time: false
-      author_profile: false
-      share: false
-      comments: false
-      sidebar:
-        nav: "docs"
+      layout: doc
+  - scope:
+      path: ""
+    values:
+      layout: page
 
-# Collections
-collections:
-  docs:
-    output: true
-    permalink: /:collection/:path/
+exclude:
+  - .gitignore
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - node_modules/
+  - firmware/
+  - hardware/
+  - legacy/
+  - README.md
+  - LICENSE
+  - "*.py"
 
-# Sass/SCSS
 sass:
-  sass_dir: _sass
   style: compressed
-
-# Outputting
-permalink: /:categories/:title/
-timezone: America/Los_Angeles
-
-# Plugins
-plugins:
-  - jekyll-paginate
-  - jekyll-sitemap
-  - jekyll-gist
-  - jekyll-feed
-  - jekyll-include-cache
-
-# Archives
-category_archive:
-  type: liquid
-  path: /categories/
-tag_archive:
-  type: liquid
-  path: /tags/
-
-# HTML Compression
-compress_html:
-  clippings: all
-  ignore:
-    envs: development
