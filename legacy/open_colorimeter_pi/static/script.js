@@ -690,7 +690,7 @@ async function executeSequence() {
 
             } else if (solenoidNum !== null) {
                 // Solenoid command
-                const state = value.toLowerCase() === 'on';
+                const state = parts[1].toLowerCase() === 'on';
                 progressDiv.innerHTML += `  💧 Solenoid ${solenoidNum}: ${state ? 'ON' : 'OFF'}\n`;
 
                 await fetch(`/api/solenoid/${solenoidNum}/set`, {

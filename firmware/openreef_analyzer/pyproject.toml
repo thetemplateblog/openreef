@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openreef"
+version = "0.1.0"
+description = "Automated reef aquarium alkalinity / nitrate / phosphate analyzer (Raspberry Pi, FastAPI)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "David Childs" }]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.5",
+    "pyyaml>=6",
+    "numpy>=1.26",
+    "httpx>=0.26",
+]
+
+[project.optional-dependencies]
+rpi = ["pigpio>=1.78", "smbus2>=0.4", "adafruit-circuitpython-as7341>=1.3", "adafruit-blinka>=8.0"]
+mqtt = ["paho-mqtt>=2.0"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "httpx>=0.26"]
+
+[project.scripts]
+openreef = "openreef.main:cli"
+
+[tool.setuptools.packages.find]
+include = ["openreef*"]
+
+[tool.setuptools.package-data]
+openreef = ["web/*.html", "web/*.js", "web/*.css"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

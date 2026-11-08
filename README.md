@@ -1,469 +1,62 @@
-# OpenReef Automated System
+# OpenReef
 
-Open-source Raspberry Pi web-based colorimeter for water quality testing.
+**Open-source automated reef water analyzer — alkalinity, nitrate and phosphate on a schedule, with a real API.**
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-ready%20to%20build-green.svg)
-![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi-red.svg)
+[![Site](https://img.shields.io/badge/docs-openreef.dev-0f8b8d.svg)](https://openreef.dev)
+![Hardware](https://img.shields.io/badge/hardware-CERN--OHL--P-blue.svg)
+![Software](https://img.shields.io/badge/software-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)
+![Status](https://img.shields.io/badge/status-v2%20design%20complete%2C%20first%20build-orange.svg)
 
----
+OpenReef measures **total alkalinity by Gran acid titration** (0.02 dKH resolution) and **nitrate and phosphate by self-blanked colorimetry** (0.1 ppm / 0.01 ppm), unattended, from about **$849** of off-the-shelf parts and a few 3D-printed pieces. One Python service on a Raspberry Pi runs the fluidics, the chemistry math, a scheduler, SQLite history, a dashboard and a 40-endpoint REST/WebSocket API, with Hydros, MQTT/Home Assistant, webhook and Prometheus integrations. A hardware simulator with a carbonate-system model runs the whole stack on a laptop.
 
-## Overview
+| Parameter | Method | Range | Resolution | Cycle |
+|---|---|---|---|---|
+| Alkalinity | Gran titration, 0.02 N HCl, lab-grade pH electrode | 4–14 dKH | 0.02 dKH | 6–8 min |
+| Phosphate | Molybdenum blue, 850 nm, AS7341 | 0–1.0 ppm | 0.01 ppm | 10–12 min |
+| Nitrate | Reduction + Griess azo dye, 540 nm | 0–50 ppm | 0.1 ppm | 15–30 min |
 
-**OpenReef** is an open-source Raspberry Pi-based colorimeter with web interface for automated water quality testing. Access measurements and controls from any device on your network. Perfect for reef aquariums, hydroponics, and environmental monitoring.
-
-### Key Features
-
-- **Web-Based Control**: Access from phone, tablet, or computer on your network
-- **Remote Monitoring**: Check water quality from anywhere
-- **Automated Sequences**: Pre-programmed test protocols with motors, valves, and timers
-- **Real-Time Display**: Live sensor readings and interactive controls
-- **Multi-Channel**: Support for 4 motors and 8 solenoid valves
-- **Editable Calibrations**: Web-based JSON configuration
-- **Open Source**: Complete hardware designs, Python code, and documentation
-- **Cost Effective**: ~$200-250 build cost using Raspberry Pi and Adafruit components
-
----
-
-## Quick Links
-
-### 📖 Documentation
-
-- **[Full Pi Documentation](firmware/open_colorimeter_pi/README.md)** - Detailed guide with all features
-- [Introduction & Overview](docs/introduction/overview.md) - System overview
-
-### 🧪 Assay Protocols
-
-- [Phosphate Assay](docs/assays/phosphate.md) - 880nm colorimetric method
-- [Nitrate Assay](docs/assays/nitrate.md) - 528nm colorimetric method
-- [All Tests Database](https://airtable.com/appMpWSXr4eiez8un/shr0cEYUXC2TSvy0D/tblhy9wB2t7TJefgu)
-
-### 🔧 Hardware
-
-- [Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md) - Complete parts list and assembly
-
-### 💻 Software
-
-- [Web Interface](firmware/open_colorimeter_pi/README.md) - Flask app documentation
-- [Calibration Guide](docs/calibration/calibration-guide.md) - Calibration procedures
-- [Configuration](firmware/open_colorimeter_pi/README.md#configuration) - Mappings, sequences, calibrations
-
-### 🔗 Related Projects
-
-- [Control Led](https://github.com/iorodeo/i_control_led/tree/main)
-- [Open Colorimeter Product Guide](https://blog.iorodeo.com/open-colorimeter-product-guide/)
-
----
-
-## System Architecture
+## Repository
 
 ```
-┌──────────────────────────────────────────┐
-│      Raspberry Pi + Flask Server         │
-│  ┌────────────┐  ┌──────────────────┐   │
-│  │  TSL2591   │  │  Motor HAT       │   │
-│  │  Sensor    │  │  Solenoid Driver │   │
-│  └────────────┘  └──────────────────┘   │
-└────────┬───────────────┬──────────────────┘
-         │               │
-    Measurement     Hardware Control
-         │               │
-         │          ┌────▼─────────┐
-         │          │  Motors (4×) │
-    ┌────▼────┐    │  Solenoids(8×)│
-    │ Cuvette │    │  Reagents    │
-    └─────────┘    └──────────────┘
-         ▲
-         │
-    ┌────┴────────────────┐
-    │   Web Browser UI    │
-    │  (Phone/Tablet/PC)  │
-    └─────────────────────┘
+firmware/openreef_analyzer/   Python service (openreef/ package), tests, deploy scripts, config.example.yaml
+hardware/analyzer/cad/        OpenSCAD syringe pump, cell cap, cuvette holder, brackets; panels.svg; wiring.svg; bom.csv
+_docs/ _layouts/ _includes/   openreef.dev (Jekyll, GitHub Pages, custom theme)
+legacy/                       the 2025 OpenReef colorimeter (Flask + TSL2591), unchanged
 ```
 
-### Component Summary
-
-| Component | Function | Details |
-|-----------|----------|---------|
-| **Raspberry Pi** | Main controller | Web server, automation, remote access |
-| **TSL2591** | Light sensor | Absorbance measurements (I2C) |
-| **Motor HAT** | Motor control | 4 DC motors for pumps/stirring |
-| **MCP23017** | Solenoid driver | 8-channel valve control (I2C) |
-| **Web UI** | User interface | Responsive Flask app, any device |
-
----
-
-## Assay Comparison
-
-| Feature | Phosphate | Nitrate |
-|---------|-----------|---------|
-| **Chemistry** | Ascorbic acid method | Cadmium reduction + Griess |
-| **Wavelength** | 880 nm (NIR) | 528 nm (Green) |
-| **Range** | 0-30 ppm PO₄ | 0-90 ppm NO₃ |
-| **Reagent Drops** | 6 + 6 | 10 + 10 |
-| **Reaction Time** | 5-10 min* | 5+ min |
-| **Total Time** | ~12 min | ~10 min |
-| **Critical Timing** | YES* | NO |
-
-*Phosphate measurements must be taken within 5-10 minute window before solution becomes cloudy.
-
----
-
-## Automated Sequence
-
-1. **System Preparation** - Flush with RO water, clear waste
-2. **Sample Loading** - Fill cuvette with test water (5 mL)
-3. **Baseline** - Zero colorimeter with sample
-4. **Reagent #1** - Automated dosing + mixing
-5. **Reagent #2** - Automated dosing + mixing + timer start
-6. **Incubation** - Timed color development
-7. **Measurement** - Read absorbance, calculate concentration
-8. **Cleanup** - Automatic RO water flush
-
-All steps fully automated. Total hands-off time: 10-12 minutes.
-
----
-
-## Getting Started
-
-### 1. Hardware Assembly
-
-**Estimated Cost:** $200-250
-
-Components needed:
-- Raspberry Pi 3/4/5
-- Adafruit DC & Stepper Motor HAT
-- TSL2591 light sensor
-- MCP23017 solenoid driver
-- DC motors, solenoid valves, power supply
-
-Detailed guide:
-- **[Raspberry Pi Hardware Guide](docs/hardware/raspberry-pi.md)** - Complete parts list with Adafruit PIDs
-
-### 2. Software Installation
-
-See **[Raspberry Pi Setup Guide](docs/getting-started/raspberry-pi-setup.md)** for complete instructions:
+## Quick start (no hardware)
 
 ```bash
-# Clone repository
+cd firmware/openreef_analyzer
+./dev.sh          # creates .venv, installs, runs the simulator at http://localhost:8080 (Swagger at /docs)
+./dev.sh test     # same venv, runs the 8 tests
+```
+
+(`dev.sh` is just `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`; needs Python 3.11+.)
+
+## Quick start (Raspberry Pi)
+
+```bash
 git clone https://github.com/thetemplateblog/openreef.git
-cd openreef/firmware/open_colorimeter_pi
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run automated service installer
-./install_service.sh
+cd openreef/firmware/openreef_analyzer && ./deploy/install.sh
 ```
 
-Access web interface at: `http://raspberrypi.local:5000`
+Then follow the [build order](https://openreef.dev/docs/getting-started/build-order/) and [calibration](https://openreef.dev/docs/chemistry/calibration/) guides.
 
-### 3. Configuration & Calibration
+## How it works
 
-- Edit device names in web Config tab (mappings.json)
-- Create command sequences for automation
-- Set up calibration curves
-- Follow [Calibration Guide](docs/calibration/calibration-guide.md)
+- **Alkalinity**: 20 mL sample, 0.02 N HCl in 60 µL steps from a printed syringe pump (0.07 µL/step), pH tracked by an Atlas Scientific EZO-pH; a DIC-corrected Gran fit over pH 3.0–3.8 gives TA independent of electrode offset. Acid is standardised against Na₂CO₃.
+- **Nitrate / phosphate**: 10 mL in a 22 mm cuvette, read before and after reagent (self-blanking), 11-channel AS7341 with white and 850 nm LEDs, primary + secondary wavelength per test as a spectral-shape check. Liquid reagents from the Neptune Trident NP kit; lab-standard chemistry documented as a fallback.
+- **Fluidics**: six cheap peristaltic pumps move sample and waste; a dip tube sets the cell volume; five syringe pumps with check valves do the precise work.
+- **Safety**: leak sensor, waste float, homing only into empty cells, reagent accounting, alarm relay, systemd watchdog.
 
-### 4. Run Your First Test
+Full design document, chemistry, CAD and wiring: **https://openreef.dev**
 
-- Access web interface from any device
-- Use Sequences tab to create automated protocols
-- Monitor real-time measurements
-- Save and load test configurations
+## Status
 
----
+v2 is a complete design with working software (simulator-validated) and printable/cuttable hardware files. The first physical build and validation against reference standards is in progress — treat nitrate and phosphate dose volumes for the Trident NP kit as starting points until characterised.
 
-## Documentation Structure
+## Licence
 
-```
-openreef/
-├── README.md (this file)
-├── docs/
-│   ├── introduction/
-│   │   └── overview.md
-│   ├── getting-started/
-│   │   └── raspberry-pi-setup.md
-│   ├── assays/
-│   │   ├── phosphate.md
-│   │   └── nitrate.md
-│   ├── hardware/
-│   │   └── raspberry-pi.md
-│   └── calibration/
-│       └── calibration-guide.md
-├── firmware/
-│   └── open_colorimeter_pi/
-│       ├── README.md (complete Pi guide)
-│       ├── app.py (Flask web server)
-│       ├── colorimeter.py (hardware control)
-│       ├── templates/ (web UI)
-│       └── static/ (CSS, JavaScript)
-└── hardware/
-    └── (CAD files, schematics - coming soon)
-```
-
----
-
-## Technical Specifications
-
-### Measurement Capabilities
-
-**Phosphate (PO₄)**
-- Method: APHA 4500-P E (Ascorbic Acid)
-- Range: 0-30 ppm PO₄
-- LOD: 0.05 ppm
-- LOQ: 0.10 ppm
-- Wavelength: 880 nm
-
-**Nitrate (NO₃)**
-- Method: Cadmium Reduction + Griess
-- Range: 0-90 ppm NO₃
-- LOD: 0.2 ppm
-- LOQ: 0.5 ppm
-- Wavelength: 528 nm
-
-### Performance
-
-- **Precision**: < 5% RSD (relative standard deviation)
-- **Accuracy**: ± 10% of known standards
-- **Sample Volume**: 5 mL
-- **Throughput**: 5-6 samples/hour
-- **Automation Level**: 100% (sample to result)
-
----
-
-## Applications
-
-### Reef Aquarium
-
-Monitor nutrient levels for optimal coral health:
-- Ultra-low phosphate (< 0.03 ppm) for SPS corals
-- Nitrate control (5-10 ppm) for mixed reefs
-- Track water change effectiveness
-
-### Hydroponics
-
-Maintain nutrient solution balance:
-- Ensure adequate phosphate for plant growth
-- Monitor nitrate uptake
-- Optimize fertilizer dosing
-
-### Environmental Testing
-
-Field water quality analysis:
-- Stream/river nutrient monitoring
-- Eutrophication assessment
-- Agricultural runoff testing
-
-### Education
-
-Chemistry and instrumentation demonstrations:
-- Colorimetric analysis principles
-- Beer-Lambert law
-- Automation and robotics
-
----
-
-## Hardware Details
-
-### Electronics
-
-- **Controller**: Raspberry Pi 3/4/5
-- **Sensor**: TSL2591 light sensor (I2C address 0x29)
-- **Motor Control**: Adafruit DC & Stepper Motor HAT (I2C address 0x60)
-- **Valve Control**: Adafruit I2C 8-Channel Solenoid Driver MCP23017 (I2C address 0x20)
-- **Motors**: 4× DC motors (4.5-13.5V, <1.2A)
-- **Solenoids**: 8× 12V solenoid valves
-
-### Fluidics
-
-- **Tubing**: 3mm ID silicone
-- **Cuvette**: 1 cm path length for colorimetric measurements
-- **Reservoirs**: RO water, test water, waste, reagents
-
-### Power
-
-- **Motor Power**: 12V DC, 2-3A (green terminal on Motor HAT)
-- **Raspberry Pi**: 5V USB-C (separate from motor power)
-- **Consumption**: ~15W during operation
-
----
-
-## Software
-
-### Web Interface
-
-- **Language**: Python 3.x
-- **Framework**: Flask (web server)
-- **Platform**: Raspberry Pi (Raspberry Pi OS or Ubuntu Server)
-- **Libraries**:
-  - `adafruit-circuitpython-tsl2591` - Light sensor
-  - `adafruit-circuitpython-motorkit` - Motor HAT control
-  - `adafruit-circuitpython-mcp230xx` - Solenoid driver
-  - `flask` - Web server
-  - `numpy` - Data processing
-
-### Features
-
-- **Web-Based Interface**: Access from any device on network
-- **Real-Time Measurements**: Live sensor data display
-- **Automated Sequences**: Command-based automation (motors, valves, waits, blanking, measurements)
-- **Editable Configurations**: Web-based JSON editors for mappings, sequences, and calibrations
-- **Multi-Tab UI**: Measure, Motors, Solenoids, Sequences, Calibrations, Config
-- **Auto-Start Service**: Systemd service for boot automation
-- **Remote Access**: Network-accessible from phone, tablet, or computer
-
----
-
-## Project Status
-
-✅ **Raspberry Pi Version - Ready to Build!**
-
-### Completed
-- ✅ Raspberry Pi web interface (Flask)
-- ✅ Hardware control (motors, solenoids, sensor)
-- ✅ Automated command sequences
-- ✅ Web-based configuration editors
-- ✅ Calibration system
-- ✅ Real-time measurements and display
-- ✅ Systemd service automation
-- ✅ Comprehensive documentation
-- ✅ Assay protocol documentation
-
-### In Progress
-- 🔨 CAD designs (3D printable enclosure and mounts)
-- 🔨 Hardware assembly guide with photos
-- 🔨 Assay-specific calibration protocols
-- 🔨 PCB design (optional, for cleaner wiring)
-
-### Planned
-- 📋 Sensor multiplexer support (multi-sensor switching)
-- 📋 Data visualization and trending
-- 📋 Additional assays (ammonia, silicate)
-- 📋 Multi-sample carousel
-
----
-
-## Contributing
-
-This is an open-source project. Contributions welcome!
-
-- **Documentation**: Improvements and corrections
-- **Firmware**: CircuitPython code development
-- **Hardware**: Enclosure designs, PCB layouts
-- **Testing**: Validation and QC data
-
----
-
-## Safety & Compliance
-
-### Chemical Safety
-
-⚠️ **Reagent Hazards**:
-- Phosphate Bottle #1: Contains sulfuric acid (corrosive)
-- Nitrate Bottle #2: Contains cadmium metal (toxic)
-
-**Precautions**:
-- Wear gloves and eye protection
-- Work in ventilated area
-- Dispose of nitrate waste properly (hazardous waste)
-- Follow Red Sea Pro test kit MSDS
-
-### Electrical Safety
-
-- Use certified power supplies
-- Ensure proper grounding
-- Keep electronics away from liquids
-- Follow local electrical codes
-
----
-
-## License
-
-This project is licensed under the **MIT License**.
-
-```
-Copyright (c) 2025 OpenReef Project
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
-
-## Acknowledgments
-
-### Based on Methods From:
-- [IoRodeo BioRodeo Assay Protocols](https://sites.google.com/iorodeo.com/biorodeo/)
-- [Open Colorimeter Project](https://blog.iorodeo.com/open-colorimeter-product-guide/)
-- APHA Standard Methods for Water Analysis
-
-### Built With:
-- [Raspberry Pi Foundation](https://www.raspberrypi.org) - Raspberry Pi platform
-- [AdaFruit](https://www.adafruit.com) - Motor HAT, sensors, solenoid driver, electronics
-- [CircuitPython (Blinka)](https://circuitpython.org) - Python hardware libraries
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- Red Sea Pro Test Kits - Reagent chemistry
-
----
-
-## Contact & Support
-
-- **Documentation**: See `/docs` folder
-- **Issues**: [GitHub Issues](https://github.com/yourusername/openreef/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/openreef/discussions)
-
----
-
-## Roadmap
-
-### Version 1.0 (Released)
-- ✅ Raspberry Pi web interface
-- ✅ Core hardware control (motors, solenoids, sensor)
-- ✅ Automated sequences
-- ✅ Web-based configuration
-- ✅ Manual calibration
-- ✅ JSON data storage
-
-### Version 1.1 (In Progress)
-- 🔨 CAD designs for enclosure
-- 🔨 Hardware assembly documentation
-- 🔨 Assay-specific protocols
-
-### Version 2.0 (Future)
-- Sensor multiplexer support
-- Data visualization and trending
-- Historical data storage (SQLite)
-- Additional assays (ammonia, alkalinity, calcium)
-- Sample carousel automation
-- Mobile-optimized UI
-
----
-
-## Related Projects
-
-- [Open Colorimeter](https://www.iorodeo.com/collections/colorimeter) - General purpose colorimeter
-- [Atlas Scientific](https://atlas-scientific.com) - Water quality sensors
-- [Reef-Pi](https://reef-pi.github.io) - Reef aquarium controller
-
----
-
-**Built with passion for the reef keeping and maker communities.**
-
-🐠 🪸 🧪 🔬 🤖
+Hardware CERN-OHL-P v2 · Software MIT · Documentation CC BY 4.0. OpenReef is not affiliated with Neptune Systems, CoralVue, Hanna Instruments or Atlas Scientific.

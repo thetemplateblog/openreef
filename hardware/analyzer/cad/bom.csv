@@ -1,0 +1,42 @@
+section,item,qty,unit_usd,ext_usd,source_or_part,notes
+Compute,Raspberry Pi 4 Model B 2 GB,1,45,45,Raspberry Pi reseller,Pi Zero 2 W also works (slower dashboard)
+Compute,microSD 32 GB A2,1,8,8,any,Raspberry Pi OS Lite 64-bit
+Compute,12 V 5 A power supply (barrel),1,14,14,Mean Well GST60A12 or similar,fused
+Compute,5 V 3 A buck converter module,1,4,4,MP1584 / LM2596,feeds Pi 5 V pin
+Compute,MCP23017 breakout,1,6,6,Adafruit 5346,I2C 0x20
+Compute,8-channel low-side MOSFET module,1,10,10,IRF520/IRLZ44N board,12 V pumps + stirrers
+Compute,TMC2209 StepStick driver,5,4,20,BTT/Fysetc,1/16 microstep; VREF 0.6 V
+Compute,1-ch 5 V relay module,1,3,3,any,dry contact to Hydros Sense port
+Compute,Perfboard 9x15 cm + headers + screw terminals + JST-XH kit + wire,1,25,25,any,stepper carrier board
+Compute,DS18B20 waterproof probe,1,3,3,any,+ 4.7 k resistor
+Compute,Water leak sensor module,1,4,4,any,drip tray
+Compute,Float switch (waste bottle),1,4,4,any,NC/NO selectable
+Sensing,Atlas Scientific pH Kit KIT-101P (EZO-pH + lab-grade probe + isolated carrier + buffers),1,167,167,atlas-scientific.com,verified Nov 2026
+Sensing,Adafruit AS7341 10-channel spectral sensor,1,16,16,Adafruit 4698,I2C 0x39
+Sensing,"LEDs: 5 mm white high-CRI, 5 mm 850 nm IR, resistors, 2N7002",1,4,4,any,
+Fluidics,NEMA17 stepper 34 mm (17HS4023),5,9,45,any,0.7-1.0 A
+Fluidics,T8x2 lead screw 150 mm + brass nut,5,5,25,any,2 mm lead (single start)
+Fluidics,5 mm to 8 mm flexible coupler,5,1.6,8,any,
+Fluidics,8 mm smooth rod 120 mm + LM8UU,5,3,15,any,
+Fluidics,5 mL glass luer-lock syringe,5,6,30,Fortuna Optima / Socorex,PP Norm-Ject acceptable for reagents
+Fluidics,Luer one-way check valve (PP/silicone),10,2,20,Qosina / Cole-Parmer,2 per pump
+Fluidics,Micro limit switch,5,0.8,4,any,home switch
+Fluidics,12 V peristaltic pump with silicone tube,6,12,72,Kamoer KPHM100 or generic,1-1.5 mL/s
+Fluidics,40 mm 12 V fan + N52 8x3 magnets + PTFE stir bars (25 mm & 8 mm),2,6,12,any,magnetic stirrers
+Fluidics,Silicone tubing 2x4 mm 5 m,1,8,8,any,pump + sample lines
+Fluidics,PTFE tubing 1/16 ID x 1/8 OD 5 m,1,12,12,any,acid + reagent lines
+Fluidics,Luer barbs / 1/8 barbs / Y / plug fitting kit,1,12,12,any,
+Fluidics,Inline 100 um sample filter,1,6,6,any,on intake
+Fluidics,60 mL borosilicate vial 40x100 mm (Cell A),1,6,6,any,
+Fluidics,Hanna HI731331 22 mm glass cuvettes (4 pk) (Cell B),1,12,12,Hanna,
+Fluidics,2 L HDPE waste bottle + 500 mL HDPE acid bottle,1,12,12,any,Trident NP waste requires HDPE/glass
+Fluidics,Bottle caps with 2 ports + tube weights,6,1.5,9,any,
+Enclosure,Cast acrylic 3 mm 600x900 mm,2,20,40,any,sides/top/front/bulkhead/shelves
+Enclosure,Cast acrylic 6 mm 300x600 mm,1,18,18,any,base/back/bottle tray
+Enclosure,M3 hardware + heat-set inserts + hinges + magnets + grommets,1,20,20,any,
+Enclosure,PETG filament (~500 g),1,12,12,any,pumps/caps/holder/brackets
+Chemistry,Neptune Trident NP 2-month reagent kit,1,60,60,BRS / Saltwater Aquarium,60 tests each; ground ship only
+Chemistry,0.1 N HCl certified 1 L,1,15,15,Hach/LabChem/Ricca,dilute 1:5
+Chemistry,Na2CO3 ACS primary standard 100 g,1,14,14,any,alkalinity reference
+Chemistry,KNO3 ACS + KH2PO4 ACS (standards),1,24,24,any,
+Chemistry,DI water 4 L,1,5,5,store,

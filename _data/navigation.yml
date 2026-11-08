@@ -1,3 +1,68 @@
-# Main navigation (top menu)
-# Disabled for now
+# Top navigation
 main:
+  - title: Docs
+    url: /docs/introduction/overview/
+  - title: Hardware
+    url: /docs/hardware/bom/
+  - title: Chemistry
+    url: /docs/chemistry/alkalinity/
+  - title: API
+    url: /docs/software/api/
+  - title: GitHub
+    url: https://github.com/thetemplateblog/openreef
+    external: true
+
+# Docs sidebar (order matters)
+docs:
+  - title: Introduction
+    children:
+      - title: Overview
+        url: /docs/introduction/overview/
+      - title: How it measures
+        url: /docs/introduction/measurement/
+      - title: Safety
+        url: /docs/introduction/safety/
+  - title: Getting started
+    children:
+      - title: Build order
+        url: /docs/getting-started/build-order/
+      - title: Bring-up & first test
+        url: /docs/getting-started/bring-up/
+  - title: Hardware
+    children:
+      - title: Bill of materials
+        url: /docs/hardware/bom/
+      - title: Fluidics
+        url: /docs/hardware/fluidics/
+      - title: Electronics & wiring
+        url: /docs/hardware/electronics/
+      - title: Enclosure
+        url: /docs/hardware/enclosure/
+  - title: Chemistry
+    children:
+      - title: Alkalinity (Gran titration)
+        url: /docs/chemistry/alkalinity/
+      - title: Phosphate & nitrate
+        url: /docs/chemistry/colorimetry/
+      - title: Reagents
+        url: /docs/chemistry/reagents/
+      - title: Calibration
+        url: /docs/chemistry/calibration/
+  - title: Software
+    children:
+      - title: Install
+        url: /docs/software/install/
+      - title: REST & WebSocket API
+        url: /docs/software/api/
+      - title: Hydros, MQTT & webhooks
+        url: /docs/software/integrations/
+      - title: Simulator
+        url: /docs/software/simulator/
+      - title: Configuration
+        url: /docs/software/configuration/
+  - title: Project
+    children:
+      - title: Legacy colorimeter (v1)
+        url: /docs/project/legacy/
+      - title: Contributing
+        url: /docs/project/contributing/

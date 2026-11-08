@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenReef Analyzer</title>
+<style>
+:root{
+  --paper:#f6f4ee;--card:#fffdf8;--ink:#15201f;--ink-2:#4a5553;--ink-3:#8a9391;--line:#e3dfd4;
+  --teal:#0f8b8d;--teal-soft:#dff1f0;--coral:#e4572e;--coral-soft:#fbe6df;--amber:#c98a1a;--amber-soft:#fbefd6;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;--sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Fraunces","Iowan Old Style","Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans)}
+a{color:var(--teal)}
+header{display:flex;align-items:center;gap:18px;padding:14px 28px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+.logo{font:600 18px var(--serif);letter-spacing:.2px;display:flex;align-items:center;gap:10px}
+.logo svg{width:26px;height:26px}
+nav{display:flex;gap:4px;margin-left:12px}
+nav button{background:none;border:0;padding:8px 12px;border-radius:8px;font:500 13px var(--sans);color:var(--ink-2);cursor:pointer}
+nav button.active,nav button:hover{background:var(--teal-soft);color:var(--teal)}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--ink-2);background:var(--card)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.dot.ok{background:#1f9d55}.dot.busy{background:var(--amber);animation:pulse 1.2s infinite}.dot.bad{background:var(--coral)}
+@keyframes pulse{50%{opacity:.35}}
+main{max-width:1180px;margin:0 auto;padding:26px 28px 60px}
+.view{display:none}.view.active{display:block}
+h1{font:600 28px/1.15 var(--serif);margin:0 0 4px}
+h2{font:600 18px var(--serif);margin:0 0 12px}
+.sub{color:var(--ink-2);margin:0 0 22px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:900px){.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.tile .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);display:flex;justify-content:space-between}
+.tile .value{font:600 40px/1.1 var(--serif);margin:8px 0 2px}
+.tile .value small{font:500 14px var(--sans);color:var(--ink-3);margin-left:6px}
+.tile .meta{font-size:12px;color:var(--ink-2);display:flex;gap:12px;flex-wrap:wrap}
+.tile.alert{border-color:var(--coral);background:linear-gradient(0deg,var(--coral-soft),var(--card) 60%)}
+.spark{width:100%;height:46px;margin-top:10px}
+.range{height:6px;border-radius:3px;background:var(--line);position:relative;margin-top:12px}
+.range .band{position:absolute;top:0;bottom:0;background:var(--teal-soft);border-radius:3px}
+.range .mark{position:absolute;top:-4px;width:3px;height:14px;background:var(--ink);border-radius:2px}
+.progress{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.progress>div{height:100%;background:var(--teal);transition:width .4s}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+button.btn{background:var(--ink);color:#fff;border:0;border-radius:9px;padding:9px 14px;font:500 13px var(--sans);cursor:pointer}
+button.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.btn.danger{background:var(--coral)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+input,select{font:14px var(--sans);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--ink-3);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.mono{font-family:var(--mono);font-size:12px}
+.flag{display:inline-block;padding:1px 7px;border-radius:999px;background:var(--amber-soft);color:#7a5200;font-size:11px;margin-right:4px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar>div{height:100%;background:var(--teal)}
+.bar.low>div{background:var(--coral)}
+.chart{width:100%;height:260px}
+.log{font-family:var(--mono);font-size:12px;max-height:320px;overflow:auto;background:#1c2423;color:#d7e0de;border-radius:10px;padding:12px}
+.muted{color:var(--ink-3)}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:13px}
+.kv b{font-weight:500;color:var(--ink-2)}
+footer{text-align:center;color:var(--ink-3);font-size:12px;padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4h16v12a8 8 0 0 1-16 0z"/><path d="M8 20c3 2 13 2 16 0"/><path d="M12 4v-1M20 4v-1"/><circle cx="16" cy="23" r="1.5" fill="currentColor" stroke="none"/></svg>
+    OpenReef
+  </div>
+  <nav>
+    <button data-view="overview" class="active">Overview</button>
+    <button data-view="history">History</button>
+    <button data-view="calibration">Calibration</button>
+    <button data-view="reagents">Reagents</button>
+    <button data-view="hardware">Hardware</button>
+    <button data-view="schedule">Schedule</button>
+  </nav>
+  <div class="spacer"></div>
+  <span class="pill" id="statusPill"><span class="dot" id="statusDot"></span><span id="statusText">connecting…</span></span>
+  <a class="pill" href="/docs" target="_blank" style="text-decoration:none">API docs</a>
+</header>
+
+<main>
+<!-- ================= OVERVIEW ================= -->
+<section class="view active" id="view-overview">
+  <h1>Water chemistry</h1>
+  <p class="sub">Latest results from the analyzer. Bands show your configured target range.</p>
+  <div class="grid g3" id="tiles"></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h2>Run</h2>
+      <div id="runInfo" class="muted">Idle</div>
+      <div class="progress" style="margin:10px 0"><div id="runBar" style="width:0%"></div></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="startTest('alkalinity')">Test alkalinity</button>
+        <button class="btn" onclick="startTest('phosphate')">Test phosphate</button>
+        <button class="btn" onclick="startTest('nitrate')">Test nitrate</button>
+        <button class="btn ghost" onclick="startTest('full')">Full cycle</button>
+        <button class="btn danger" onclick="post('/api/v1/tests/abort')">Abort</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Next up</h2>
+      <table><thead><tr><th>Test</th><th>When</th></tr></thead><tbody id="upcoming"></tbody></table>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost" id="schedToggle" onclick="toggleSchedule()">Pause schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>Live events</h2>
+    <div class="log" id="log"></div>
+  </div>
+</section>
+
+<!-- ================= HISTORY ================= -->
+<section class="view" id="view-history">
+  <h1>History</h1>
+  <p class="sub">Every stored result. Click a row for the raw titration curve or absorbance channels.</p>
+  <div class="row" style="margin-bottom:12px">
+    <select id="histTest" onchange="loadHistory()"><option value="alkalinity">Alkalinity</option><option value="phosphate">Phosphate</option><option value="nitrate">Nitrate</option></select>
+    <select id="histDays" onchange="loadHistory()"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="3650">All</option></select>
+    <a class="pill" href="/api/v1/results/export.csv" style="text-decoration:none">Export CSV</a>
+  </div>
+  <div class="card"><svg class="chart" id="histChart"></svg></div>
+  <div class="card" style="margin-top:16px">
+    <table><thead><tr><th>Time</th><th>Value</th><th>Quality</th><th>Temp</th><th>Flags</th><th>Duration</th></tr></thead><tbody id="histRows"></tbody></table>
+  </div>
+  <div class="card" style="margin-top:16px;display:none" id="rawCard"><h2>Raw data</h2><pre class="mono" id="rawPre" style="white-space:pre-wrap"></pre></div>
+</section>
+
+<!-- ================= CALIBRATION ================= -->
+<section class="view" id="view-calibration">
+  <h1>Calibration</h1>
+  <p class="sub">pH electrode → acid standardisation → colorimetric curves. The analyzer must be idle.</p>
+  <div class="grid g3">
+    <div class="card">
+      <h2>1. pH electrode</h2>
+      <p class="muted">Place the electrode in buffer, wait 60 s, then press. Do 7.00 first.</p>
+      <div class="row"><button class="btn ghost" onclick="post('/api/v1/calibration/ph',{point:'mid',value:7})">pH 7.00</button>
+      <button class="btn ghost" onclick="post('/api/v1/calibration/ph',{point:'low',value:4})">pH 4.00</button>
+      <button class="btn ghost" onclick="post('/api/v1/calibration/ph',{point:'high',value:10})">pH 10.00</button></div>
+      <p class="muted" style="margin-top:10px">Live: <span id="livePh" class="mono">–</span></p>
+    </div>
+    <div class="card">
+      <h2>2. Acid standardisation</h2>
+      <p class="muted">Put the intake line in a reference standard (0.1 g/L Na₂CO₃ = 1.887 meq/L = 5.28 dKH).</p>
+      <div class="row"><input id="stdTa" type="number" step="0.001" value="1.887" style="width:110px"> meq/L
+      <button class="btn" onclick="post('/api/v1/calibration/alkalinity/standardize',{known_ta_meq_l:+stdTa.value})">Run</button></div>
+      <p class="muted" style="margin-top:10px">Current normality: <span id="normality" class="mono">–</span> N</p>
+    </div>
+    <div class="card">
+      <h2>3. Colorimetric curve</h2>
+      <p class="muted">Intake in a standard, run a point; 2–4 points, then fit.</p>
+      <div class="row">
+        <select id="calTest"><option value="phosphate">Phosphate</option><option value="nitrate">Nitrate</option></select>
+        <input id="calPpm" type="number" step="0.01" placeholder="ppm" style="width:90px">
+        <button class="btn" onclick="post('/api/v1/calibration/'+calTest.value+'/point',{standard_ppm:+calPpm.value})">Run point</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn ghost" onclick="post('/api/v1/calibration/'+calTest.value+'/fit',{degree:1,through_zero:true}).then(loadCalibration)">Fit line</button>
+        <button class="btn ghost" onclick="post('/api/v1/calibration/'+calTest.value+'/fit',{degree:2,through_zero:true}).then(loadCalibration)">Fit quadratic</button>
+        <button class="btn ghost" onclick="fetch('/api/v1/calibration/'+calTest.value+'/points',{method:'DELETE',headers:hdr()}).then(loadCalibration)">Clear points</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="charPpm" type="number" step="0.01" placeholder="ppm" style="width:90px">
+        <button class="btn ghost" onclick="post('/api/v1/calibration/'+calTest.value+'/characterize',{standard_ppm:+charPpm.value,minutes:40})">Characterise reagent (40 min)</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Current calibration</h2><div id="calState" class="kv"></div></div>
+</section>
+
+<!-- ================= REAGENTS ================= -->
+<section class="view" id="view-reagents">
+  <h1>Reagents</h1>
+  <p class="sub">Volumes are decremented per dispense. Refill after changing a bottle, then prime the line.</p>
+  <div class="card"><table><thead><tr><th>Reagent</th><th style="width:30%">Level</th><th>Remaining</th><th>Tests left</th><th>Pump</th><th></th></tr></thead><tbody id="reagentRows"></tbody></table></div>
+</section>
+
+<!-- ================= HARDWARE ================= -->
+<section class="view" id="view-hardware">
+  <h1>Hardware</h1>
+  <p class="sub">Manual control for bring-up and maintenance. Disabled while a run is active.</p>
+  <div class="grid g2">
+    <div class="card"><h2>Pumps</h2><div id="pumpBtns" class="row"></div>
+      <div class="row" style="margin-top:12px"><button class="btn ghost" onclick="post('/api/v1/hardware/home')">Home all syringes</button>
+      <button class="btn ghost" onclick="post('/api/v1/hardware/flush')">Flush both cells</button>
+      <button class="btn danger" onclick="post('/api/v1/hardware/estop')">E-STOP</button></div>
+      <div class="row" style="margin-top:12px"><select id="dispPump"></select><input id="dispUl" type="number" value="500" style="width:90px"> µL
+      <button class="btn ghost" onclick="post('/api/v1/hardware/dispense',{pump:dispPump.value,ul:+dispUl.value})">Dispense</button></div>
+    </div>
+    <div class="card"><h2>Sensors</h2>
+      <div class="row"><button class="btn ghost" onclick="readPh()">Read pH / temp</button>
+      <button class="btn ghost" onclick="readSpectral('white')">Spectral (white)</button>
+      <button class="btn ghost" onclick="readSpectral('ir')">Spectral (IR)</button></div>
+      <pre class="mono" id="sensorOut" style="white-space:pre-wrap;margin-top:10px"></pre>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>State</h2><pre class="mono" id="hwState" style="white-space:pre-wrap"></pre></div>
+</section>
+
+<!-- ================= SCHEDULE ================= -->
+<section class="view" id="view-schedule">
+  <h1>Schedule</h1>
+  <p class="sub">5-field cron, local time. Changes apply immediately.</p>
+  <div class="card">
+    <table><thead><tr><th>Test</th><th>Cron</th><th>Enabled</th><th></th></tr></thead><tbody id="schedRows"></tbody></table>
+    <div class="row" style="margin-top:12px"><button class="btn ghost" onclick="addSched()">Add entry</button><button class="btn" onclick="saveSched()">Save</button></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Alert limits</h2>
+    <div class="kv" id="limits"></div>
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="saveLimits()">Save limits</button></div>
+  </div>
+</section>
+</main>
+<footer>OpenReef Analyzer · <a href="https://openreef.dev">openreef.dev</a></footer>
+
+<script>
+const API_KEY = new URLSearchParams(location.search).get('api_key') || localStorage.getItem('openreef_key') || '';
+if (API_KEY) localStorage.setItem('openreef_key', API_KEY);
+const hdr = () => API_KEY ? {'X-API-Key': API_KEY, 'Content-Type':'application/json'} : {'Content-Type':'application/json'};
+const get = (u) => fetch(u, {headers: hdr()}).then(r => r.json());
+async function post(u, body) {
+  const r = await fetch(u, {method:'POST', headers: hdr(), body: body ? JSON.stringify(body) : undefined});
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok) logLine(`✗ ${u}: ${j.detail || r.status}`); else logLine(`→ ${u} ${JSON.stringify(j).slice(0,120)}`);
+  return j;
+}
+const UNITS = {alkalinity:'dKH', phosphate:'ppm', nitrate:'ppm'};
+const LIMIT_KEY = {alkalinity:'alk_dkh', phosphate:'po4_ppm', nitrate:'no3_ppm'};
+const DEC = {alkalinity:2, phosphate:3, nitrate:1};
+let status = null, limits = null, schedule = [];
+
+// ---------- nav
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.remove('active')); b.classList.add('active');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + b.dataset.view).classList.add('active');
+  ({history: loadHistory, calibration: loadCalibration, reagents: loadReagents, hardware: loadHardware, schedule: loadSchedule})[b.dataset.view]?.();
+});
+
+// ---------- overview
+async function refresh() {
+  try { status = await get('/api/v1/status'); } catch (e) { setStatus('bad', 'offline'); return; }
+  limits = status.limits;
+  renderTiles(status.latest);
+  const p = status.progress;
+  if (p.test) { setStatus('busy', `${p.test}: ${p.step}`); runInfo.textContent = `${p.test} — ${p.step} (${p.elapsed_s}s)`; runBar.style.width = p.percent + '%'; }
+  else { setStatus(status.hardware.alarm ? 'bad' : 'ok', status.hardware.alarm ? 'alarm' : 'idle'); runInfo.textContent = 'Idle'; runBar.style.width = '0%'; }
+  upcoming.innerHTML = status.schedule.upcoming.map(u => `<tr><td>${u.test}</td><td class="mono">${u.at.replace('T',' ')}</td></tr>`).join('') || '<tr><td colspan=2 class="muted">nothing scheduled</td></tr>';
+  schedToggle.textContent = status.schedule.enabled ? 'Pause schedule' : 'Resume schedule';
+  document.querySelectorAll('button.btn').forEach(b => { if (!b.classList.contains('danger') && /Test|Full|Run|Dispense|Home|Flush|point|Fit/.test(b.textContent)) b.disabled = !!p.test; });
+}
+function setStatus(cls, txt) { statusDot.className = 'dot ' + cls; statusText.textContent = txt; }
+const sparkCache = {};
+async function renderTiles(latest) {
+  const tests = ['alkalinity', 'phosphate', 'nitrate'];
+  for (const t of tests) if (!sparkCache[t] || Date.now() - sparkCache[t].ts > 60000) {
+    const since = Date.now()/1000 - 14*86400;
+    sparkCache[t] = {ts: Date.now(), rows: await get(`/api/v1/results?test=${t}&since=${since}&limit=200`)};
+  }
+  tiles.innerHTML = tests.map(t => {
+    const r = latest[t]; const [lo, hi] = limits[LIMIT_KEY[t]];
+    const v = r ? r.value : null; const out = v != null && (v < lo || v > hi);
+    const rows = sparkCache[t].rows.slice().reverse();
+    const age = r ? ageStr(Date.now()/1000 - r.ts) : 'no data';
+    const span = Math.max(hi*1.6, (v||0)*1.15) ; const pct = x => Math.min(100, Math.max(0, x/span*100));
+    return `<div class="card tile ${out?'alert':''}">
+      <div class="label"><span>${t}</span><span>${age}</span></div>
+      <div class="value">${v==null?'—':v.toFixed(DEC[t])}<small>${UNITS[t]}</small></div>
+      <div class="meta">${r?`quality ${(r.quality*100).toFixed(0)}% · ${r.flags.map(f=>`<span class="flag">${f}</span>`).join('')||'no flags'}`:''}</div>
+      <div class="range"><div class="band" style="left:${pct(lo)}%;width:${pct(hi)-pct(lo)}%"></div>${v!=null?`<div class="mark" style="left:${pct(v)}%"></div>`:''}</div>
+      ${sparkline(rows, lo, hi)}
+    </div>`;
+  }).join('');
+}
+function sparkline(rows, lo, hi) {
+  if (rows.length < 2) return '<svg class="spark"></svg>';
+  const W = 300, H = 46, xs = rows.map(r => r.ts), ys = rows.map(r => r.value);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(lo, ...ys), y1 = Math.max(hi, ...ys);
+  const X = x => (x - x0) / ((x1 - x0) || 1) * (W - 4) + 2, Y = y => H - 3 - (y - y0) / ((y1 - y0) || 1) * (H - 6);
+  const d = rows.map((r, i) => `${i ? 'L' : 'M'}${X(r.ts).toFixed(1)},${Y(r.value).toFixed(1)}`).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><rect x="0" y="${Y(hi)}" width="${W}" height="${Y(lo)-Y(hi)}" fill="#dff1f0"/><path d="${d}" fill="none" stroke="#0f8b8d" stroke-width="1.6"/></svg>`;
+}
+function ageStr(s) { if (s < 3600) return `${Math.round(s/60)} min ago`; if (s < 86400) return `${(s/3600).toFixed(1)} h ago`; return `${(s/86400).toFixed(1)} d ago`; }
+async function startTest(t) { await post('/api/v1/tests/' + t); refresh(); }
+async function toggleSchedule() { await post('/api/v1/schedule/' + (status.schedule.enabled ? 'pause' : 'resume')); refresh(); }
+function logLine(s) { const d = document.createElement('div'); d.textContent = `${new Date().toLocaleTimeString()}  ${s}`; log.prepend(d); while (log.children.length > 200) log.lastChild.remove(); }
+
+// ---------- websocket
+function connectWs() {
+  const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/events${API_KEY ? '?api_key=' + API_KEY : ''}`);
+  ws.onmessage = (m) => {
+    const e = JSON.parse(m.data);
+    if (e.type === 'progress') { runInfo.textContent = `${e.test} — ${e.step}` + (e.ph ? ` pH ${e.ph}` : '') + (e.remaining_s != null ? ` (${e.remaining_s}s left)` : ''); runBar.style.width = e.percent + '%'; setStatus('busy', `${e.test}: ${e.step}`); return; }
+    if (e.type === 'result') { logLine(`RESULT ${e.test} = ${e.value} ${e.unit} (q ${e.quality})`); sparkCache[e.test] = null; refresh(); return; }
+    if (e.type === 'hello') return;
+    logLine(`${e.type} ${JSON.stringify(Object.fromEntries(Object.entries(e).filter(([k]) => !['type','ts'].includes(k)))).slice(0, 160)}`);
+    if (['run_finished', 'alert', 'run_started'].includes(e.type)) refresh();
+  };
+  ws.onclose = () => setTimeout(connectWs, 3000);
+}
+
+// ---------- history
+async function loadHistory() {
+  const t = histTest.value, since = Date.now()/1000 - histDays.value * 86400;
+  const rows = await get(`/api/v1/results?test=${t}&since=${since}&limit=5000`);
+  histRows.innerHTML = rows.map(r => `<tr onclick="showRaw(${r.id})" style="cursor:pointer"><td class="mono">${new Date(r.ts*1000).toLocaleString()}</td><td><b>${r.value.toFixed(DEC[t])}</b> ${r.unit}</td><td>${(r.quality*100).toFixed(0)}%</td><td>${r.temp_c?.toFixed(1)} °C</td><td>${r.flags.map(f=>`<span class="flag">${f}</span>`).join('')}</td><td>${Math.round(r.duration_s)} s</td></tr>`).join('');
+  drawChart(rows.slice().reverse(), limits[LIMIT_KEY[t]], UNITS[t]);
+}
+function drawChart(rows, [lo, hi], unit) {
+  const svg = histChart, W = svg.clientWidth || 900, H = 260, pad = {l: 48, r: 12, t: 12, b: 28};
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  if (rows.length < 1) { svg.innerHTML = '<text x="20" y="40" fill="#8a9391">No results in range</text>'; return; }
+  const xs = rows.map(r => r.ts), ys = rows.map(r => r.value);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs) || x0 + 1, y0 = Math.min(lo, ...ys) * 0.95, y1 = Math.max(hi, ...ys) * 1.05;
+  const X = x => pad.l + (x - x0) / ((x1 - x0) || 1) * (W - pad.l - pad.r), Y = y => H - pad.b - (y - y0) / ((y1 - y0) || 1) * (H - pad.t - pad.b);
+  let s = `<rect x="${pad.l}" y="${Y(hi)}" width="${W-pad.l-pad.r}" height="${Y(lo)-Y(hi)}" fill="#dff1f0"/>`;
+  for (let i = 0; i <= 4; i++) { const y = y0 + (y1 - y0) * i / 4; s += `<line x1="${pad.l}" x2="${W-pad.r}" y1="${Y(y)}" y2="${Y(y)}" stroke="#e3dfd4"/><text x="${pad.l-6}" y="${Y(y)+4}" text-anchor="end" font-size="11" fill="#8a9391">${y.toFixed(2)}</text>`; }
+  s += `<path d="${rows.map((r,i)=>`${i?'L':'M'}${X(r.ts)},${Y(r.value)}`).join(' ')}" fill="none" stroke="#0f8b8d" stroke-width="2"/>`;
+  s += rows.map(r => `<circle cx="${X(r.ts)}" cy="${Y(r.value)}" r="3" fill="${r.quality<0.5?'#e4572e':'#0f8b8d'}"><title>${new Date(r.ts*1000).toLocaleString()} ${r.value} ${unit}</title></circle>`).join('');
+  s += `<text x="${pad.l}" y="${H-8}" font-size="11" fill="#8a9391">${new Date(x0*1000).toLocaleDateString()}</text><text x="${W-pad.r}" y="${H-8}" font-size="11" fill="#8a9391" text-anchor="end">${new Date(x1*1000).toLocaleDateString()}</text>`;
+  svg.innerHTML = s;
+}
+async function showRaw(id) { const r = await get('/api/v1/results/' + id); rawCard.style.display = 'block'; rawPre.textContent = JSON.stringify(r.raw, null, 1); }
+
+// ---------- calibration
+async function loadCalibration() {
+  const c = await get('/api/v1/calibration');
+  normality.textContent = c.acid_normality.toFixed(5);
+  const fmt = a => a.map(x => x.toPrecision(4)).join(', ');
+  calState.innerHTML = `<b>Acid normality</b><span class="mono">${c.acid_normality.toFixed(5)} N</span>
+    <b>Phosphate curve</b><span class="mono">ppm = [${fmt(c.phosphate.coeffs)}] · ${c.phosphate.points.length} pending points</span>
+    <b>Nitrate curve</b><span class="mono">ppm = [${fmt(c.nitrate.coeffs)}] · ${c.nitrate.points.length} pending points</span>
+    <b>Records</b><span>${c.records.slice(0,8).map(r => `${new Date(r.ts*1000).toLocaleDateString()} ${r.test}/${r.kind}`).join('<br>') || '—'}</span>`;
+  readPh(true);
+}
+
+// ---------- reagents
+async function loadReagents() {
+  const rs = await get('/api/v1/reagents');
+  reagentRows.innerHTML = rs.map(r => `<tr><td><b>${r.name}</b><br><span class="muted mono">${r.id}</span></td>
+    <td><div class="bar ${r.fraction<0.1?'low':''}"><div style="width:${(r.fraction*100).toFixed(0)}%"></div></div></td>
+    <td>${r.remaining_ml.toFixed(1)} / ${r.bottle_ml} mL</td><td>${r.tests_remaining ?? '—'}</td><td class="mono">${r.pump}</td>
+    <td class="row"><button class="btn ghost" onclick="post('/api/v1/reagents/${r.id}/refill',{}).then(loadReagents)">Refill</button><button class="btn ghost" onclick="post('/api/v1/reagents/${r.id}/prime')">Prime</button></td></tr>`).join('');
+}
+
+// ---------- hardware
+async function loadHardware() {
+  const hw = await get('/api/v1/hardware'); const cfg = await get('/api/v1/config');
+  hwState.textContent = JSON.stringify(hw, null, 1);
+  pumpBtns.innerHTML = cfg.hardware.dc.map(d => `<button class="btn ghost" onclick="post('/api/v1/hardware/pump',{name:'${d.name}',seconds:3})">${d.name} 3 s</button>`).join('');
+  dispPump.innerHTML = cfg.hardware.steppers.map(s => `<option>${s.name}</option>`).join('');
+}
+async function readPh(quiet) { const r = await get('/api/v1/hardware/ph'); livePh.textContent = `${r.ph.toFixed(3)} @ ${r.temp_c.toFixed(1)} °C`; if (!quiet) sensorOut.textContent = JSON.stringify(r, null, 1); }
+async function readSpectral(led) { const r = await get('/api/v1/hardware/spectral?led=' + led); sensorOut.textContent = Object.entries(r).map(([k, v]) => `${k.padEnd(8)} ${v.toFixed(0)}`).join('\n'); }
+
+// ---------- schedule & limits
+async function loadSchedule() {
+  const s = await get('/api/v1/schedule'); schedule = s.entries; renderSched();
+  limits = (await get('/api/v1/status')).limits;
+  document.getElementById('limits').innerHTML = Object.entries(limits).map(([k, [lo, hi]]) => `<b>${k}</b><span><input id="lim_${k}_lo" value="${lo}" style="width:90px"> – <input id="lim_${k}_hi" value="${hi}" style="width:90px"></span>`).join('');
+}
+function renderSched() {
+  schedRows.innerHTML = schedule.map((e, i) => `<tr><td><select onchange="schedule[${i}].test=this.value">${['alkalinity','phosphate','nitrate','full'].map(t => `<option ${t===e.test?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><input class="mono" value="${e.cron}" onchange="schedule[${i}].cron=this.value" style="width:180px"></td>
+    <td><input type="checkbox" ${e.enabled?'checked':''} onchange="schedule[${i}].enabled=this.checked"></td>
+    <td><button class="btn ghost" onclick="schedule.splice(${i},1);renderSched()">Remove</button></td></tr>`).join('');
+}
+function addSched() { schedule.push({test: 'alkalinity', cron: '0 */6 * * *', enabled: true}); renderSched(); }
+async function saveSched() { await fetch('/api/v1/schedule', {method: 'PUT', headers: hdr(), body: JSON.stringify(schedule)}); logLine('schedule saved'); refresh(); }
+async function saveLimits() {
+  const body = {}; for (const k of Object.keys(limits)) body[k] = [+document.getElementById(`lim_${k}_lo`).value, +document.getElementById(`lim_${k}_hi`).value];
+  const r = await fetch('/api/v1/config/limits', {method: 'PUT', headers: hdr(), body: JSON.stringify(body)}); logLine(r.ok ? 'limits saved' : 'limits rejected'); refresh();
+}
+
+refresh(); connectWs(); setInterval(refresh, 15000);
+</script>
+</body>
+</html>

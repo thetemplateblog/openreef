@@ -1,0 +1,37 @@
+---
+layout: default
+---
+<div class="wrap docs">
+  <aside class="docs-side" data-docs-side>
+    <button class="side-toggle" data-side-toggle aria-expanded="false">Documentation ▾</button>
+    <nav class="docs-nav">
+      {% for group in site.data.navigation.docs %}
+        <div class="nav-group">
+          <div class="nav-group-title">{{ group.title }}</div>
+          {% for child in group.children %}
+            <a class="{% if page.url == child.url %}is-active{% endif %}" href="{{ child.url | relative_url }}">{{ child.title }}</a>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="docs-main">
+    <article class="prose">
+      {% assign crumbs = page.url | split: "/" %}
+      <div class="crumbs">{% if crumbs[2] %}{{ crumbs[2] | replace: "-", " " | capitalize }}{% endif %}</div>
+      <h1>{{ page.title }}</h1>
+      {% if page.summary %}<p class="lead">{{ page.summary }}</p>{% endif %}
+      {{ content }}
+      <div class="doc-footer">
+        <a href="{{ site.github_url }}/edit/main/_docs/{{ page.path | remove_first: '_docs/' }}" target="_blank" rel="noopener">Edit this page ↗</a>
+        {% if page.last_modified_at %}<span class="muted">Updated {{ page.last_modified_at | date: "%b %-d, %Y" }}</span>{% endif %}
+      </div>
+    </article>
+  </main>
+
+  <aside class="docs-toc" data-toc>
+    <div class="toc-title">On this page</div>
+    <nav class="toc" data-toc-list></nav>
+  </aside>
+</div>

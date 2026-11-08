@@ -1,0 +1,115 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1300 1080' width='1300mm' height='1080mm'>
+<rect width='1300' height='1080' fill='white'/>
+<text x='20' y='28' font-family='Inter,system-ui,sans-serif' font-size='18' fill='#15201f'>OpenReef enclosure — panel layout (mm). Red = cut, blue = engrave. Butt joints with printed corner brackets, M3 + heat-set inserts.</text>
+<rect x='20' y='50' width='420' height='200' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='26' y='66' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>BASE 6 mm (drip tray sits on it) — 420×200</text>
+<circle cx='35' cy='65' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='35' cy='235' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='230' cy='65' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='230' cy='235' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='425' cy='65' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='425' cy='235' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='50' y='90' width='200' height='120' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='53' y='102' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>drip tray recess (engrave)</text>
+<rect x='320' y='80' width='100' height='140' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='323' y='92' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>electronics standoffs ×4 (engrave)</text>
+<rect x='460' y='50' width='420' height='460' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='466' y='66' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>BACK 6 mm — 420×460</text>
+<circle cx='475' cy='65' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='475' cy='280' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='475' cy='495' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='65' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='280' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='495' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='760' y='450' width='60' height='30' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='763' y='462' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>12 V jack + fuse</text>
+<rect x='790' y='80' width='70' height='40' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='793' y='92' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>fan 60 mm (dry bay)</text>
+<rect x='480' y='470' width='40' height='40' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='483' y='482' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>sample in/out, waste</text>
+<rect x='580' y='470' width='120' height='40' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='583' y='482' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>reagent lines grommets ×5</text>
+<rect x='900' y='50' width='200' height='460' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='906' y='66' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>BULKHEAD 3 mm (wet | dry) — 200×460</text>
+<circle cx='912' cy='70' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='912' cy='490' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1088' cy='70' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1088' cy='490' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='960' y='110' width='80' height='20' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='963' y='122' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>grommet: pH BNC + DS18B20</text>
+<rect x='960' y='200' width='80' height='20' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='963' y='212' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>grommet: pump/stepper looms</text>
+<rect x='960' y='350' width='80' height='20' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='963' y='362' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>grommet: LED/AS7341</text>
+<rect x='20' y='280' width='200' height='460' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='26' y='296' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>SIDE L 3 mm — 200×460</text>
+<circle cx='32' cy='300' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='32' cy='720' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='208' cy='300' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='208' cy='720' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='240' y='280' width='200' height='460' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='246' y='296' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>SIDE R 3 mm — 200×460</text>
+<circle cx='252' cy='300' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='252' cy='720' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='428' cy='300' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='428' cy='720' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='280' y='340' width='120' height='60' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='283' y='352' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>vent slots (dry bay)</text>
+<rect x='460' y='540' width='420' height='200' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='466' y='556' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>TOP 3 mm — 420×200</text>
+<circle cx='475' cy='555' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='475' cy='725' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='555' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='725' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='750' y='610' width='100' height='60' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='753' y='622' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>vent slots</text>
+<rect x='900' y='540' width='260' height='300' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='906' y='556' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>FRONT DOOR clear 3 mm — 260×300</text>
+<circle cx='910' cy='580' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='910' cy='800' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1150' cy='690' r='3.25' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='1170' y='540' width='110' height='300' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='1176' y='556' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>FRONT DRY 3 mm — 110×300</text>
+<circle cx='1182' cy='560' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1268' cy='560' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1182' cy='820' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1268' cy='820' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='1225' cy='600' r='4.1' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='1185' y='740' width='80' height='25' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='1188' y='752' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>Pi USB/Eth access</text>
+<rect x='20' y='760' width='260' height='190' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='26' y='776' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>SHELF pumps 3 mm (5 × 60 mm pitch) — 260×190</text>
+<circle cx='50' cy='800' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='50' cy='910' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='100' cy='800' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='100' cy='910' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='150' cy='800' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='150' cy='910' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='200' cy='800' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='200' cy='910' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='250' cy='800' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='250' cy='910' r='2.2' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='30' y='820' width='240' height='70' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='33' y='832' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>syringe pump bases, M4 slots</text>
+<rect x='300' y='760' width='260' height='190' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='306' y='776' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>SHELF cells 3 mm — 260×190</text>
+<circle cx='370' cy='855' r='13.0' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='500' cy='855' r='13.0' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='325' y='810' width='90' height='90' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='328' y='822' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>Cell A 40 mm vial + fan</text>
+<rect x='455' y='810' width='90' height='90' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='458' y='822' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>Cell B holder + fan</text>
+<rect x='580' y='760' width='300' height='190' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='586' y='776' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>SHELF bottle tray 6 mm — 300×190</text>
+<circle cx='595' cy='775' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='595' cy='935' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='775' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<circle cx='865' cy='935' r='1.6' fill='none' stroke='#d33' stroke-width='0.5'/>
+<rect x='595' y='800' width='230' height='120' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='598' y='812' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>5 × Ø60 reagent + Ø80 acid, 10 mm lip</text>
+<rect x='900' y='860' width='380' height='90' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='906' y='876' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#2d6cdf'>CORNER BRACKETS: 12 × printed (3D), not cut — 380×90</text>
+<rect x='910' y='890' width='360' height='40' fill='none' stroke='#d33' stroke-width='0.5'/>
+<text x='913' y='902' font-family='Inter,system-ui,sans-serif' font-size='9' fill='#2d6cdf'>see cad/corner_bracket.scad — M3 heat-set inserts both faces</text>
+<text x='20' y='1060' font-family='Inter,system-ui,sans-serif' font-size='11' fill='#8a9391'>Stack order (front view): dry bay right; wet bay left with cells shelf at 330 mm, syringe bank at 200 mm, bottle tray at 20 mm above base; peristaltic pumps on the bulkhead's wet face. Waste bottle sits outside, below.</text>
+</svg>
