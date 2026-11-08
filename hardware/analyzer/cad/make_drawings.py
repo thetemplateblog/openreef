@@ -1,5 +1,5 @@
-"""Generate wiring.svg (block wiring diagram) and panels.svg (laser-cut layout).
-Run: python cad/make_drawings.py  -> writes cad/wiring.svg, cad/panels.svg
+"""Generate wiring.svg (block wiring diagram).
+Run: python make_drawings.py  -> writes wiring.svg   (panels.svg comes from panels.py)
 """
 from __future__ import annotations
 
@@ -149,5 +149,4 @@ def panels() -> str:
 
 if __name__ == "__main__":
     (OUT / "wiring.svg").write_text(wiring())
-    (OUT / "panels.svg").write_text(panels())
-    print("wrote", OUT / "wiring.svg", OUT / "panels.svg")
+    print("wrote", OUT / "wiring.svg")

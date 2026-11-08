@@ -20,6 +20,10 @@ summary: Two cells, five syringe pumps, six peristaltic pumps and how liquid mov
 
 ## Cells
 
+| ![Cell A cap](/assets/img/renders/cell_a_cap.png) | ![Cell B holder](/assets/img/renders/cell_b_holder.png) |
+|---|---|
+| Cell A cap: electrode, probe, fill/level/drain tubes, acid tip, vent | Cell B holder body (sensor pocket side) and 8-port lid |
+
 **Cell A** is a 60 mL borosilicate vial (40 × 100 mm). A printed cap (`cell_a_cap.scad`) carries the 12 mm pH electrode, the DS18B20, the fill tube, the *level* dip tube whose tip sets 20.0 mL, the *drain* dip tube reaching the bottom, the acid drip tip (above the liquid, so acid never back-diffuses into the syringe line) and a vent. A 25 mm PTFE stir bar is driven by a 40 mm fan with two magnets glued to the hub, mounted under the shelf.
 
 **Cell B** is a 22 mm round glass cuvette (Hanna HI731331 type) in a black PETG holder (`cell_b_holder.scad`). The AS7341 sits behind a 4 mm aperture on one face; the white and IR LEDs sit on the opposite face 8 mm apart, both aimed at the bore centre 22 mm above the bottom, above the 8 mm stir bar. The lid has eight 3.4 mm ports: fill, level, drain, four reagent tips, vent.
@@ -29,6 +33,8 @@ summary: Two cells, five syringe pumps, six peristaltic pumps and how liquid mov
 Fill pumps overfill the cell by 30 %; after a 2 s settle, the level pump runs long enough to remove 60 % of the nominal volume — more than the excess — so it draws air for the last few seconds and the liquid surface ends exactly at the tube tip. Repeatability is about ±1 % (surface tension and tube-tip geometry); the calibration against a reference standard absorbs the systematic part. Trim the tubes once with a scale: 20.0 g and 10.0 g of water.
 
 ## Syringe pumps
+
+![Syringe pump render](/assets/img/renders/syringe_pump.png)
 
 Each pump is a NEMA17 (17HS4023), a T8×2 lead screw with brass nut, an 8 mm guide rod with LM8UU, a 5 mL glass luer-lock syringe and two luer check valves. The carriage captures the plunger thumb rest so the motor can both push and pull. At 1/16 microstepping:
 

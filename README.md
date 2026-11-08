@@ -20,7 +20,7 @@ OpenReef measures **total alkalinity by Gran acid titration** (0.02 dKH resoluti
 
 ```
 firmware/openreef_analyzer/   Python service (openreef/ package), tests, deploy scripts, config.example.yaml
-hardware/analyzer/cad/        OpenSCAD syringe pump, cell cap, cuvette holder, brackets; panels.svg; wiring.svg; bom.csv
+hardware/analyzer/cad/        OpenSCAD parts + renders/, finger-joint panel generator (panels.py), 3D assembly, wiring.svg, bom.csv
 _docs/ _layouts/ _includes/   openreef.dev (Jekyll, GitHub Pages, custom theme)
 legacy/                       the 2025 OpenReef colorimeter (Flask + TSL2591), unchanged
 ```

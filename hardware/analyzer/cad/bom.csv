@@ -33,7 +33,7 @@ Fluidics,2 L HDPE waste bottle + 500 mL HDPE acid bottle,1,12,12,any,Trident NP 
 Fluidics,Bottle caps with 2 ports + tube weights,6,1.5,9,any,
 Enclosure,Cast acrylic 3 mm 600x900 mm,2,20,40,any,sides/top/front/bulkhead/shelves
 Enclosure,Cast acrylic 6 mm 300x600 mm,1,18,18,any,base/back/bottle tray
-Enclosure,M3 hardware + heat-set inserts + hinges + magnets + grommets,1,20,20,any,
+Enclosure,M3 hardware (40x M3x12 + nuts for T-slots) + heat-set inserts + hinges + magnets + grommets,1,20,20,any,
 Enclosure,PETG filament (~500 g),1,12,12,any,pumps/caps/holder/brackets
 Chemistry,Neptune Trident NP 2-month reagent kit,1,60,60,BRS / Saltwater Aquarium,60 tests each; ground ship only
 Chemistry,0.1 N HCl certified 1 L,1,15,15,Hach/LabChem/Ricca,dilute 1:5

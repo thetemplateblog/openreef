@@ -44,7 +44,7 @@ module frame() {
       // bearing / end block (holds the far end of the screw + rod)
       translate([25 + stroke + 15 + 12, 0, 0]) cube([wall, width, height]);
       // syringe cradle
-      translate([25 + stroke + 15 + 12 + wall, 0, 0]) cube([barrel_len + 10, width, axis_z - barrel_d/2 + 2]);
+      translate([25 + stroke + 15 + 12 + wall, 0, 0]) cube([barrel_len + 10, width, axis_z]);   // half-pipe cradle, flush with the axis
     }
     // motor shaft + bolt pattern on the motor block
     translate([-1, width/2, axis_z]) rotate([0, 90, 0]) cylinder(d = nema_boss + 0.5, h = wall + 2);
