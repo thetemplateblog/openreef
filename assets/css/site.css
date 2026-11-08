@@ -82,6 +82,12 @@ section.wrap{padding-top:72px;padding-bottom:72px}
 .checks li{padding-left:28px;position:relative;margin:8px 0;color:var(--ink-2)}
 .checks li::before{content:"";position:absolute;left:0;top:9px;width:14px;height:8px;border-left:2px solid var(--teal);border-bottom:2px solid var(--teal);transform:rotate(-45deg)}
 .checks.light li{color:#c6d0ce}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:32px}
+.gallery figure{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.gallery img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#f6f4ee}
+.gallery figcaption{padding:12px 14px;font-size:13px;color:var(--ink-2)}
+@media(max-width:900px){.gallery{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.gallery{grid-template-columns:1fr}}
 .spec-table table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:14px}
 .spec-table th{text-align:left;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:12px 14px;border-bottom:1px solid var(--line);background:#f1eee6}
 .spec-table td{padding:12px 14px;border-bottom:1px solid var(--line)}

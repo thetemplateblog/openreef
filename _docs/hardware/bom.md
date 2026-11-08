@@ -59,7 +59,7 @@ Prices are US dollars from common suppliers (Adafruit, Amazon, AliExpress, lab-s
 |---|---|---|---|---|---|
 | Cast acrylic 3 mm 600x900 mm | 2 | $20 | $40 | any | sides/top/front/bulkhead/shelves |
 | Cast acrylic 6 mm 300x600 mm | 1 | $18 | $18 | any | base/back/bottle tray |
-| M3 hardware + heat-set inserts + hinges + magnets + grommets | 1 | $20 | $20 | any |  |
+| M3 hardware (incl. 40× M3×12 + nuts for T-slots) + heat-set inserts + hinges + magnets + grommets | 1 | $20 | $20 | any |  |
 | PETG filament (~500 g) | 1 | $12 | $12 | any | pumps/caps/holder/brackets |
 
 ## Chemistry
